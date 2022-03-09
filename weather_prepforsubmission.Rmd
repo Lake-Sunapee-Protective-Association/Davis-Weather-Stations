@@ -1,0 +1,89 @@
+---
+title: "Prepare for Archiving"
+author: "B. Steele"
+date: "11/24/2020"
+output: html_document
+---
+
+This document prepares the data form the LSPA weather stations for submission to EDI. Primarily, this code changes column headers to use controlled vocabulary from the ODM2 controlled vocabulary list.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(readxl)
+library(lubridate)
+
+dir <- 'C:/Users/steeleb/Dropbox/Lake Sunapee/monitoring/weather/LSPA_Davis_stations/'
+
+weather_L1 <- read_csv(paste0(dir, 'L1 data/davis_weather_data_07-2019_01-2021_L1_v2021-02-22.csv'),
+                       col_types = 'cnnnnnnnncnncnnnnnnnnnnnnnnnTDTcccccc') %>% 
+  mutate(datetime_noDST = with_tz(datetime_noDST, tz= 'EST'))
+```
+
+
+Need to organize columns more intuitively. They are listed in current order below:
+```{r, echo=F}
+colnames(weather_L1)
+```
+
+Reorder columns:
+```{r}
+weather_submission <- weather_L1 %>% 
+  select(datetime_noDST, location, time_flag,
+         pressure_hpa, BP_flag, 
+         temp_c, hightemp_c, lowtemp_c, humidity_perc, dewpoint_c, wetbulb_c, temp_flag,
+         windsp_mps, winddir, windrun_m, highwindsp_mps, highwinddir,
+         windchill_c, heatindex_c, thwindex_c, thswindex_c, 
+         rain_mm, rainrate_mmph,
+         solarradiation_wpm2, solarenergy_ly, highsolarrad_wpm2, evapotrans_mm, SR_flag,
+         uvindex, uvdose_meds, highuvindex, UV_flag,
+         heatingdegdays, coolingdegdays,
+         instrument_datetime, source) #can drop date column, as it's a derived value
+
+colnames(weather_submission)
+```
+
+Creating column names using ODM-2 controlled vocabulary:
+
+```{r}
+weather_submission <- weather_submission %>% 
+  rename(SiteName = location,
+         barometricPressure_hPa = pressure_hpa,
+         temperature_degC = temp_c,
+         temperature_degC_maximum = hightemp_c,
+         temperature_degC_minimum = lowtemp_c,
+         relativeHumidity_percent = humidity_perc, #ODM2 unit abbreviation is %
+         temperatureDewPoint_degC = dewpoint_c,
+         temperatureWetBulb_degC = wetbulb_c, #wet bulb temperature is not part of the ODM2 controlled vocabulary
+         windSpeed_mps = windsp_mps, #ODM2 unit abbreviation is m/s
+         windDirection_SID = winddir, #secondary inter-cardinal direction is not part of the ODM2
+         windRun_m = windrun_m,
+         windGustSpeed_mps = highwindsp_mps, #ODM2 unit abbreviation is m/s
+         windGustDirection_SID = highwinddir, #secondary inter-cardinal direction is not part of the ODM2
+         windChill_degC = windchill_c,
+         heatIndex_degC = heatindex_c,
+         THWIndex_degC = thwindex_c,
+         THSWIndex_degC = thswindex_c, 
+         precipitation_mm = rain_mm,
+         rainfallRate_mmphr = rainrate_mmph, #ODM2 unit abbreviation is mm/hr
+         radiationTotalIncoming_Wpm2 = solarradiation_wpm2, #ODM2 unit abbreviation is W/m^2
+         radiationTotalIncomingRate_Ly = solarenergy_ly, #solar energy is not part of ODM2 controlled vocabulary, but when reported as a Langley, and knowing it is derived from solar radiation, it is likely the rate of incoming radiation. Also referred to as solar irradiance or solar insolation in some texts. (Neither solar irradiance nor solar insolation are part of the ODM2 controlled vocabulary list.)
+         radiationTotalIncoming_Wpm2_maximum = highsolarrad_wpm2, #ODM2 unit abbreviation is W/m^2
+         evapotranspiration_mm = evapotrans_mm,
+         ultravioletRadiationIndex = uvindex,
+         ultravioletRadiationDose_MED = uvdose_meds, #MED unit abbreviation not part of ODM2 controlled vocabulary
+         ultravioletRadiationIndex_maximum = highuvindex,
+         heatingDegreeDays = heatingdegdays, # heating degree days are not part of the ODM2 controlled vocabulary
+         coolingDegreeDays = coolingdegdays # cooling degree days are not part of the ODM2 controlled vocabulary
+         )
+```
+
+This file is now ready for submission. Save the .csv:
+```{r}
+weather_submission %>% 
+  mutate(datetime_noDST = as.character(datetime_noDST),
+         instrument_datetime = as.character(instrument_datetime)) %>% 
+  write_csv(., paste0(dir, 'L1 data/davis_weather_data_07-2019_01-2021_L1ODM2_v2021-02-22.csv'))
+```
+
