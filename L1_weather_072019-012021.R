@@ -1,32 +1,24 @@
----
-title: "Daivs Weather Station QAQC"
-author: "B. Steele, steeleb@caryinstitute.org"
-date: "09March2022"
-output:
-  html_document:
-  toc: true
-  toc_level: 2
----
+#*****************************************************************/
+#*      Cary Institute of Ecosystem Studies (Millbrook, NY)      */
+#*                                                               */
+#* AUTHOR:        B. Steele (steeleb@caryinstitute.org)          */
+#* SYSTEM:        Lenovo ThinkCentre/Dell XPS                    */
+#* R Version:     4.1.3                                          */
+#* R Studio:      1.4.1103                                       */
+#* PROJECT:       lake sunapee davis weather stations            */
+#* PURPOSE:       clean data for 2021                            */
+#* DATE CREATED:  09March2022                                    */
+#*****************************************************************/
 
-# Davis Weather Station QAQC
-
-This Markdown file tracks the QAQC of the Sunapee Davis Weather Stations July 2019-December 2021, which are owned/operated by the LSPA and QAQC'd by B. Steele of the Weathers' Lab, Cary Institute of Ecosystem Studies, Millbrook, NY. Data are QAQC'd in this file to remove obviously errant data. 
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, 
-                      warning = F,
-                      message = F,
-                      fig.width = 12,
-                      fig.height = 9)
 library(tidyverse)
 library(lubridate)
 library(ggthemes)
-library(readxl)
 
 #set up directory paths
 datadir <- 'C:/Users/steeleb/Dropbox/Lake Sunapee/monitoring/weather/LSPA_Davis_stations/'
 
-metfigdirL1 <- 'C:/Users/steeleb/Dropbox/Lake Sunapee/monitoring/weather/LSPA_Davis_stations/graphs/L1/'
+metfigdirL1 <- 'C:/Users/steeleb/Dropbox/Lake Sunapee/monitoring/weather/LSPA_Davis_stations/graphs/L1/2021/'
+metfigdirL05 <- 'C:/Users/steeleb/Dropbox/Lake Sunapee/monitoring/weather/LSPA_Davis_stations/graphs/L0.5/2021/'
 
 dumpdir <- 'C:/Users/steeleb/Dropbox/Lake Sunapee/monitoring/weather/LSPA_Davis_stations/L1 data/'
 
@@ -41,35 +33,19 @@ srvars = c("solarradiation_wpm2", "solarenergy_ly", "highsolarrad_wpm2", "evapot
 precipvars = c("rain_mm", "rainrate_mmph")
 windvars = c("windsp_mps", "winddir", "windrun_m", "highwindsp_mps", "highwinddir")
 allnumvars = c("pressure_hpa", "temp_c", "hightemp_c", "lowtemp_c", "humidity_perc", "dewpoint_c", "wetbulb_c", "windsp_mps", "windrun_m", 
-             "highwindsp_mps", "windchill_c", "heatindex_c", "thwindex_c", "thswindex_c", "rain_mm", "rainrate_mmph", "solarradiation_wpm2", 
-             "solarenergy_ly", "highsolarrad_wpm2", "evapotrans_mm", "uvindex", "uvdose_meds", "highuvindex", "heatingdegdays", "coolingdegdays")
+               "highwindsp_mps", "windchill_c", "heatindex_c", "thwindex_c", "thswindex_c", "rain_mm", "rainrate_mmph", "solarradiation_wpm2", 
+               "solarenergy_ly", "highsolarrad_wpm2", "evapotrans_mm", "uvindex", "uvdose_meds", "highuvindex", "heatingdegdays", "coolingdegdays")
 allcharvars = c("winddir", "highwinddir")
 
 L1_versiondate <- Sys.Date()
-```
 
-R and package versions:
-```{r, echo=FALSE}
-print('R version:')
-version
-print('tidyverse:')
-packageVersion('tidyverse')
-print('lubridate:')
-packageVersion('lubridate')
-print('ggthemes:')
-packageVersion('ggthemes')
-print('readxl:')
-packageVersion('readxl')
-```
+# Davis Weather Station QAQC ----
 
-```{r read in data, echo = FALSE}
+#This Markdown file tracks the QAQC of the Sunapee Davis Weather Stations July 2019-December 2021, which are owned/operated by the #LSPA and QAQC'd by B. Steele of the Weathers' Lab, Cary Institute of Ecosystem Studies, Millbrook, NY. Data are QAQC'd in this file #to remove obviously errant data. 
+
 #read in weather data
 weather_L0 <- read_csv(paste0(datadir, 'L0 data/davis_weather_data_07-2019_', L0_enddate, '_L0.csv'))
-```
 
-
-First, we reformat data for QAQC process, specific to visualization:
-```{r reshape data}
 #create a new dataframe for data cleaning
 weather_L1 <- weather_L0 
 
@@ -94,18 +70,10 @@ weather_L0_vert <- weather_L0 %>%
                              winddir == 'NNW' ~ '15')) %>% 
   gather(variable, value, -location, - datetime_noDST, -source) %>% 
   mutate(value = as.numeric(value))
-```
 
-***
-
-## 2019-10 data download
-
-This script runs iteratively over two-week periods for each variable, plotting the data at all 3 locations for the three months of data
-
-```{r July-Oct download L0}
 #set time period of interest:
 start_date = '2019-07-01'
-end_date = '2019-10-01'
+end_date = '2021-01-01'
 
 #create a list of weeks during time period of interest, chose first and 3rd
 week_2019Q3 <- seq(as.Date(start_date), as.Date(end_date), 'week')  %>% 
@@ -133,15 +101,13 @@ for (i in 1:(nrow(week_2019Q3)-1)){
   ggsave(paste0(metfigdirL1, '2wk_L0.5_plots_', week_2019Q3$date[i], '-', week_2019Q3$date[i+1], '.jpeg'))
 }
  
-```
 
-Observed errant data:
+#Observed errant data:
 
-* At GM until Jul 10
-* at HC until Jul 3
-* at SF barometric pressure until Jul 9
+# At GM until Jul 10
+# at HC until Jul 3
+# at SF barometric pressure until Jul 9
 
-```{r L0 errant July}
 #set time period of interest:
 location_a = 'GM'
 start_date_a = '2019-07-10'
@@ -189,13 +155,11 @@ ggplot(subset(weather_L0_vert, subset=(location == location_c & datetime_noDST>=
     scale_x_datetime(minor_breaks = '1 hour')
 ggsave(paste0(metfigdirL1, 'zoom_L0.5_plots_', start_date_c, '-', end_date_c, '.jpeg'))
 
-```
 
-GM station online 2019-07-10 9:30
-HC station online 2019-07-03 12:00
-SF barometer fixed 2019-07-09 05:00
+#GM station online 2019-07-10 9:30
+#HC station online 2019-07-03 12:00
+#SF barometer fixed 2019-07-09 05:00
 
-```{r clean Jul 2019}
 ix=which(weather_L1$location == 'GM' & weather_L1$datetime_noDST<as.POSIXct('2019-07-10 9:30', tz='UTC'))
 for (i in c(allvars)) {weather_L1[ix,i]=NA}
 
@@ -204,9 +168,7 @@ for (i in c(allvars)) {weather_L1[ix,i]=NA}
 
 ix=which(weather_L1$location == 'SF' & weather_L1$datetime_noDST<as.POSIXct('2019-07-09 05:00', tz='UTC'))
 for (i in 'pressure_hpa') {weather_L1[ix,i]=NA}
-```
 
-```{r, echo=F}
 weather_L1_vert <- weather_L1 %>% 
   select(location, datetime_noDST, source, all_of(dataforviz)) %>% #select only the data for visualization
   mutate(winddir = case_when(winddir == 'N' ~ '0',
@@ -227,10 +189,8 @@ weather_L1_vert <- weather_L1 %>%
                              winddir == 'NNW' ~ '15')) %>% 
   gather(variable, value, -location, - datetime_noDST, -source) %>% 
   mutate(value = as.numeric(value))
-```
 
-And then check the work to make sure the correct point was recoded:
-```{r July 2019 clean one-day, echo = F}
+#And then check the work to make sure the correct point was recoded:
 ggplot(subset(weather_L1_vert, subset=(location == location_a & datetime_noDST>= as.POSIXct(start_date_a, tz= 'UTC') & datetime_noDST < as.POSIXct(end_date_a, tz= 'UTC'))),  aes(x=datetime_noDST, y=value)) +
     geom_point() +
       facet_grid(variable ~ ., scales = 'free_y') +
@@ -266,76 +226,18 @@ ggplot(subset(weather_L1_vert, subset=(location == location_c & datetime_noDST>=
     scale_x_datetime(minor_breaks = '1 hour')
 ggsave(paste0(metfigdirL1, 'zoom_L0.5_plots_', start_date_c, '-', end_date_c, '.jpeg'))
 
-```
-
-Look for outliers by plotting all sites on same graph over 3-month period:
-```{r 2019Q3 L1 plots sites on same graph}
-#plot all L1 plots and save to appropriate figdir
-for (i in 1:(nrow(week_2019Q3)-1)){
-  gg_met <- ggplot(subset(weather_L1_vert, subset=(datetime_noDST>week_2019Q3$date[i] & datetime_noDST < week_2019Q3$date[i+1])), aes(x=datetime_noDST, y=value, color = location)) + 
-   geom_point() +
-    facet_grid(variable ~ ., scales = 'free_y') +
-    labs(title=paste0('Raw Met Data ', week_2019Q3$date[i], ' through ', week_2019Q3$date[i+1]),
-       x='date',
-       y=NULL) +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5)) +
-    scale_x_datetime(minor_breaks = '1 day') +
-    scale_color_colorblind()
-  print(gg_met)
-  ggsave(paste0(metfigdirL1, '2wk_L0.5_plots_overlay_', week_2019Q3$date[i], '-', week_2019Q3$date[i+1], '.jpeg'))
-}
-```
-
-Observations:
-
-It appears that the SF UV and Radiation sensors are consistently blocked from full view of sun until afternoon, so that data should be flagged. It also appears that the SF pressure is significantly lower than HC or GM. Will have to have LSPA folks look into that. 
 
 
-***
+#Observations:
+#It appears that the SF UV and Radiation sensors are consistently blocked from full view of sun until afternoon, so that data should be flagged. It also appears that the SF pressure is significantly lower than HC or GM. Will have to have LSPA folks look into that. 
 
-## 2020-01 data download
 
-This script runs iteratively over two-week periods for each variable, plotting the data at all 3 locations for the three months of data
 
-```{r Oct-Jan download L0}
-#set time period of interest:
-start_date = '2019-10-01'
-end_date = '2020-01-01'
+#Errant data observations:
+# HC offline thrrough Oct 31, some errant data around Oct 31-Nov 1
+# intermittend data reporting in UV and SR at SF beginning Nov 29 through end of this download period; needs flag
+# SF errant temp and humidity Dec30 - 31 
 
-#create a list of weeks during time period of interest, chose first and 3rd
-week_2019Q4 <- seq(as.Date(start_date), as.Date(end_date), 'week')  %>% 
-  as.data.frame(.) %>% 
-  dplyr::rename(date = '.') %>% 
-  mutate(month = format(date, '%m')) %>% 
-  group_by(month) %>%
-  slice(., c(1,3)) %>% 
-  ungroup()  %>%  #change this to the inclusive end date so that for-loop properly displays final graph
-  add_row(date = as.Date(end_date), month = '01')
-
-#plot all L0.5 plots and save to appropriate figdir
-for (i in 1:(nrow(week_2019Q4)-1)){
-  gg_met <- ggplot(subset(weather_L0_vert, subset=(datetime_noDST>week_2019Q4$date[i] & datetime_noDST < week_2019Q4$date[i+1])), aes(x=datetime_noDST, y=value)) + 
-   geom_point() +
-    facet_grid(variable ~ location, scales = 'free_y') +
-    labs(title=paste0('Raw Met Data ', week_2019Q4$date[i], ' through ', week_2019Q4$date[i+1]),
-       x='date',
-       y=NULL) +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5)) +
-    scale_x_datetime(minor_breaks = '1 day')
-  print(gg_met)
-  ggsave(paste0(metfigdirL1, '2wk_L0.5_plots_', week_2019Q4$date[i], '-', week_2019Q4$date[i+1], '.jpeg'))
-}
- 
-```
-
-Errant data observations:
-* HC offline thrrough Oct 31, some errant data around Oct 31-Nov 1
-* intermittend data reporting in UV and SR at SF beginning Nov 29 through end of this download period; needs flag
-* SF errant temp and humidity Dec30 - 31 
-
-```{r L0 errant Oct 2020}
 #set time period of interest:
 location_a = 'HC'
 start_date_a = '2019-10-31'
@@ -368,13 +270,10 @@ ggplot(subset(weather_L0_vert, subset=(location == location_b & datetime_noDST>=
     scale_x_datetime(minor_breaks = '1 hour')
 ggsave(paste0(metfigdirL1, 'zoom_L0.5_plots_', start_date_b, '-', end_date_b, '.jpeg'))
 
-```
+#Errant data observations:
+# HC all data from 2019-10-31 through 2019-11-01 17:00; end of intermittent data reporting
+# SF UV and SR should be flagged as inconsistently reporting 'i' from 2019-11-29 until end of period
 
-Errant data observations:
-* HC all data from 2019-10-31 through 2019-11-01 17:00; end of intermittent data reporting
-* SF UV and SR should be flagged as inconsistently reporting 'i' from 2019-11-29 until end of period
-
-```{r clean Oct 2019}
 ix=which(weather_L1$location == 'HC' & weather_L1$datetime_noDST>=as.POSIXct('2019-10-31', tz='UTC') & weather_L1$datetime_noDST<as.POSIXct('2019-11-01 17:00', tz='UTC'))
 for (i in c(allvars)) {weather_L1[ix,i]=NA}
 
@@ -385,9 +284,7 @@ ix=which(weather_L1$location == 'SF' & weather_L1$datetime_noDST>=as.POSIXct('20
 weather_L1$UV_flag = NA_character_
 weather_L1$SR_flag = NA_character_
 for (i in c('UV_flag', 'SR_flag')) {weather_L1[ix,i]='i'}
-```
 
-```{r, echo=F}
 weather_L1_vert <- weather_L1 %>% 
   select(location, datetime_noDST, source, all_of(dataforviz)) %>% #select only the data for visualization
   mutate(winddir = case_when(winddir == 'N' ~ '0',

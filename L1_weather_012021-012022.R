@@ -389,8 +389,9 @@ ggplot(subset(weather_L1, subset=(datetime_noDST>as.Date('2021-08-02') &
   scale_color_colorblind()
 
 weather_L1 <- weather_L1 %>% 
-  mutate(rain_mm = case_when(location == 'HC' & datetime_noDST == as.POSIXct('2021-08-02 14:30', tz = 'Etc/GMT+5') ~ NA_real_,
-                             TRUE ~ rain_mm)) %>% 
+  mutate_at(vars(precipvars),
+            ~case_when(location == 'HC' & datetime_noDST == as.POSIXct('2021-08-02 14:30', tz = 'Etc/GMT+5') ~ NA_real_,
+                             TRUE ~ .)) %>% 
   mutate(rain_flag = case_when(location == 'HC' & datetime_noDST == as.POSIXct('2021-08-02 14:30', tz = 'Etc/GMT+5') ~ 'pine needle removed from rain gauge; data prior may not be precise due to clogged gauge',
                                TRUE ~ ''))
 
