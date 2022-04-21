@@ -49,7 +49,7 @@ L1_versiondate <- Sys.Date()
 
 # Davis Weather Station QAQC ----
 
-# This Markdown file tracks the QAQC of the Sunapee Davis Weather Stations July 2019-December 2021, which are owned/operated by the #LSPA and 
+# This file tracks the QAQC of the Sunapee Davis Weather Stations July 2019-December 2021, which are owned/operated by the #LSPA and 
 # QAQC'd by B. Steele of the Weathers' Lab, Cary Institute of Ecosystem Studies, Millbrook, NY. Data are QAQC'd in this file #to remove obviously
 # errant data. 
 
@@ -105,23 +105,25 @@ biweekly_2020 <- seq(as.Date(start_date), as.Date(end_date), '2 weeks')  %>%
 # plot all the pressure data together to confirm time issues at HC
 pressureonly <- weather_L0_vert %>% 
   filter(variable == 'pressure_hpa')
-for (x in 1:(nrow(biweekly_2020)-1)){
-  gg_met <- ggplot(subset(pressureonly, subset=(datetime_noDST>biweekly_2020$date[x] & 
-                                                  datetime_noDST < biweekly_2020$date[x+1])), aes(x=datetime_noDST, y=value)) + 
-    geom_point(aes(color = location)) +
-    labs(title=paste0('Raw Pressure Data ', biweekly_2020$date[x], ' through ', biweekly_2020$date[x+1]),
-         x='date',
-         y=NULL) +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5)) +
-    scale_x_datetime(minor_breaks = '1 day') +
-    scale_color_colorblind()
-  print(gg_met)
-  ggsave(paste0(metfigdirL05, '2wk_L0.5_pres_plots_', biweekly_2020$date[x], '-', biweekly_2020$date[x+1], '.jpeg'),
-         width = 10, height =4, units = 'in')
-}
+# for (x in 1:(nrow(biweekly_2020)-1)){
+#   gg_met <- ggplot(subset(pressureonly, subset=(datetime_noDST>biweekly_2020$date[x] & 
+#                                                   datetime_noDST < biweekly_2020$date[x+1])), aes(x=datetime_noDST, y=value)) + 
+#     geom_point(aes(color = location)) +
+#     labs(title=paste0('Raw Pressure Data ', biweekly_2020$date[x], ' through ', biweekly_2020$date[x+1]),
+#          x='date',
+#          y=NULL) +
+#     theme_bw() +
+#     theme(plot.title = element_text(hjust = 0.5)) +
+#     scale_x_datetime(minor_breaks = '1 day') +
+#     scale_color_colorblind()
+#   print(gg_met)
+#   ggsave(paste0(metfigdirL05, '2wk_L0.5_pres_plots_', biweekly_2020$date[x], '-', biweekly_2020$date[x+1], '.jpeg'),
+#          width = 10, height =4, units = 'in')
+# }
 
 ### deal with problematic time at HC ----
+# note, that while coding these, I will often comment out sections that require more time/processing (i.e. the for-loops) to ease
+#processing when I need to rerun any preceeding code. 
 
 #### 1: 2020-01-13 ----
 ggplot(subset(pressureonly, subset=(datetime_noDST>as.Date('2020-01-13') & 
@@ -187,21 +189,21 @@ weather_L1_vert <- weather_L1 %>%
 #cycle through pressure only data again
 pressureonly <- weather_L1_vert %>% 
   filter(variable == 'pressure_hpa')
-for (x in 1:(nrow(biweekly_2020)-1)){
-  gg_met <- ggplot(subset(pressureonly, subset=(datetime_noDST>biweekly_2020$date[x] & 
-                                                  datetime_noDST < biweekly_2020$date[x+1])), aes(x=datetime_noDST, y=value)) + 
-    geom_point(aes(color = location)) +
-    labs(title=paste0('Raw Pressure Data 1h', biweekly_2020$date[x], ' through ', biweekly_2020$date[x+1]),
-         x='date',
-         y=NULL) +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5)) +
-    scale_x_datetime(minor_breaks = '1 day') +
-    scale_color_colorblind()
-  print(gg_met)
-  ggsave(paste0(metfigdirL05, '2wk_L0.5_tm1_pres_plots_', biweekly_2020$date[x], '-', biweekly_2020$date[x+1], '.jpeg'),
-         width = 10, height = 4, units = 'in')
-}
+# for (x in 1:(nrow(biweekly_2020)-1)){
+#   gg_met <- ggplot(subset(pressureonly, subset=(datetime_noDST>biweekly_2020$date[x] & 
+#                                                   datetime_noDST < biweekly_2020$date[x+1])), aes(x=datetime_noDST, y=value)) + 
+#     geom_point(aes(color = location)) +
+#     labs(title=paste0('Raw Pressure Data 1h', biweekly_2020$date[x], ' through ', biweekly_2020$date[x+1]),
+#          x='date',
+#          y=NULL) +
+#     theme_bw() +
+#     theme(plot.title = element_text(hjust = 0.5)) +
+#     scale_x_datetime(minor_breaks = '1 day') +
+#     scale_color_colorblind()
+#   print(gg_met)
+#   ggsave(paste0(metfigdirL05, '2wk_L0.5_tm1_pres_plots_', biweekly_2020$date[x], '-', biweekly_2020$date[x+1], '.jpeg'),
+#          width = 10, height = 4, units = 'in')
+# }
 
 #### 2: 2020-01-25 ----
 ggplot(subset(pressureonly, subset=(datetime_noDST>as.Date('2020-01-25') & 
@@ -267,21 +269,21 @@ weather_L1_vert <- weather_L1 %>%
 #cycle through pressure only data again
 pressureonly <- weather_L1_vert %>% 
   filter(variable == 'pressure_hpa')
-for (x in 1:(nrow(biweekly_2020)-1)){
-  gg_met <- ggplot(subset(pressureonly, subset=(datetime_noDST>biweekly_2020$date[x] & 
-                                                  datetime_noDST < biweekly_2020$date[x+1])), aes(x=datetime_noDST, y=value)) + 
-    geom_point(aes(color = location)) +
-    labs(title=paste0('Raw Pressure Data 1h', biweekly_2020$date[x], ' through ', biweekly_2020$date[x+1]),
-         x='date',
-         y=NULL) +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5)) +
-    scale_x_datetime(minor_breaks = '1 day') +
-    scale_color_colorblind()
-  print(gg_met)
-  ggsave(paste0(metfigdirL05, '2wk_L0.5_tm2_pres_plots_', biweekly_2020$date[x], '-', biweekly_2020$date[x+1], '.jpeg'),
-         width = 10, height = 4, units = 'in')
-}
+# for (x in 1:(nrow(biweekly_2020)-1)){
+#   gg_met <- ggplot(subset(pressureonly, subset=(datetime_noDST>biweekly_2020$date[x] & 
+#                                                   datetime_noDST < biweekly_2020$date[x+1])), aes(x=datetime_noDST, y=value)) + 
+#     geom_point(aes(color = location)) +
+#     labs(title=paste0('Raw Pressure Data 1h', biweekly_2020$date[x], ' through ', biweekly_2020$date[x+1]),
+#          x='date',
+#          y=NULL) +
+#     theme_bw() +
+#     theme(plot.title = element_text(hjust = 0.5)) +
+#     scale_x_datetime(minor_breaks = '1 day') +
+#     scale_color_colorblind()
+#   print(gg_met)
+#   ggsave(paste0(metfigdirL05, '2wk_L0.5_tm2_pres_plots_', biweekly_2020$date[x], '-', biweekly_2020$date[x+1], '.jpeg'),
+#          width = 10, height = 4, units = 'in')
+# }
 
 
 #### 3: 2020-05-15 ----
@@ -348,21 +350,21 @@ weather_L1_vert <- weather_L1 %>%
 #cycle through pressure only data again
 pressureonly <- weather_L1_vert %>% 
   filter(variable == 'pressure_hpa')
-for (x in 1:(nrow(biweekly_2020)-1)){
-  gg_met <- ggplot(subset(pressureonly, subset=(datetime_noDST>biweekly_2020$date[x] & 
-                                                  datetime_noDST < biweekly_2020$date[x+1])), aes(x=datetime_noDST, y=value)) + 
-    geom_point(aes(color = location)) +
-    labs(title=paste0('Raw Pressure Data 1h', biweekly_2020$date[x], ' through ', biweekly_2020$date[x+1]),
-         x='date',
-         y=NULL) +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5)) +
-    scale_x_datetime(minor_breaks = '1 day') +
-    scale_color_colorblind()
-  print(gg_met)
-  ggsave(paste0(metfigdirL05, '2wk_L0.5_tm3_pres_plots_', biweekly_2020$date[x], '-', biweekly_2020$date[x+1], '.jpeg'),
-         width = 10, height = 4, units = 'in')
-}
+# for (x in 1:(nrow(biweekly_2020)-1)){
+#   gg_met <- ggplot(subset(pressureonly, subset=(datetime_noDST>biweekly_2020$date[x] & 
+#                                                   datetime_noDST < biweekly_2020$date[x+1])), aes(x=datetime_noDST, y=value)) + 
+#     geom_point(aes(color = location)) +
+#     labs(title=paste0('Raw Pressure Data 1h', biweekly_2020$date[x], ' through ', biweekly_2020$date[x+1]),
+#          x='date',
+#          y=NULL) +
+#     theme_bw() +
+#     theme(plot.title = element_text(hjust = 0.5)) +
+#     scale_x_datetime(minor_breaks = '1 day') +
+#     scale_color_colorblind()
+#   print(gg_met)
+#   ggsave(paste0(metfigdirL05, '2wk_L0.5_tm3_pres_plots_', biweekly_2020$date[x], '-', biweekly_2020$date[x+1], '.jpeg'),
+#          width = 10, height = 4, units = 'in')
+# }
 
 
 #### 4: 2020-06-24 ----
@@ -438,21 +440,21 @@ weather_L1_vert <- weather_L1 %>%
 #cycle through pressure only data again
 pressureonly <- weather_L1_vert %>% 
   filter(variable == 'pressure_hpa')
-for (x in 1:(nrow(biweekly_2020)-1)){
-  gg_met <- ggplot(subset(pressureonly, subset=(datetime_noDST>biweekly_2020$date[x] & 
-                                                  datetime_noDST < biweekly_2020$date[x+1])), aes(x=datetime_noDST, y=value)) + 
-    geom_point(aes(color = location)) +
-    labs(title=paste0('Raw Pressure Data 1h', biweekly_2020$date[x], ' through ', biweekly_2020$date[x+1]),
-         x='date',
-         y=NULL) +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5)) +
-    scale_x_datetime(minor_breaks = '1 day') +
-    scale_color_colorblind()
-  print(gg_met)
-  ggsave(paste0(metfigdirL05, '2wk_L0.5_tm4_pres_plots_', biweekly_2020$date[x], '-', biweekly_2020$date[x+1], '.jpeg'),
-         width = 10, height = 4, units = 'in')
-}
+# for (x in 1:(nrow(biweekly_2020)-1)){
+#   gg_met <- ggplot(subset(pressureonly, subset=(datetime_noDST>biweekly_2020$date[x] & 
+#                                                   datetime_noDST < biweekly_2020$date[x+1])), aes(x=datetime_noDST, y=value)) + 
+#     geom_point(aes(color = location)) +
+#     labs(title=paste0('Raw Pressure Data 1h', biweekly_2020$date[x], ' through ', biweekly_2020$date[x+1]),
+#          x='date',
+#          y=NULL) +
+#     theme_bw() +
+#     theme(plot.title = element_text(hjust = 0.5)) +
+#     scale_x_datetime(minor_breaks = '1 day') +
+#     scale_color_colorblind()
+#   print(gg_met)
+#   ggsave(paste0(metfigdirL05, '2wk_L0.5_tm4_pres_plots_', biweekly_2020$date[x], '-', biweekly_2020$date[x+1], '.jpeg'),
+#          width = 10, height = 4, units = 'in')
+# }
 
 
 #### 5: 2020-07-10 ----
@@ -539,21 +541,21 @@ weather_L1_vert <- weather_L1 %>%
 #cycle through pressure only data again
 pressureonly <- weather_L1_vert %>% 
   filter(variable == 'pressure_hpa')
-for (x in 1:(nrow(biweekly_2020)-1)){
-  gg_met <- ggplot(subset(pressureonly, subset=(datetime_noDST>biweekly_2020$date[x] & 
-                                                  datetime_noDST < biweekly_2020$date[x+1])), aes(x=datetime_noDST, y=value)) + 
-    geom_point(aes(color = location)) +
-    labs(title=paste0('Raw Pressure Data 1h', biweekly_2020$date[x], ' through ', biweekly_2020$date[x+1]),
-         x='date',
-         y=NULL) +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5)) +
-    scale_x_datetime(minor_breaks = '1 day') +
-    scale_color_colorblind()
-  print(gg_met)
-  ggsave(paste0(metfigdirL05, '2wk_L0.5_tm5_pres_plots_', biweekly_2020$date[x], '-', biweekly_2020$date[x+1], '.jpeg'),
-         width = 10, height = 4, units = 'in')
-}
+# for (x in 1:(nrow(biweekly_2020)-1)){
+#   gg_met <- ggplot(subset(pressureonly, subset=(datetime_noDST>biweekly_2020$date[x] & 
+#                                                   datetime_noDST < biweekly_2020$date[x+1])), aes(x=datetime_noDST, y=value)) + 
+#     geom_point(aes(color = location)) +
+#     labs(title=paste0('Raw Pressure Data 1h', biweekly_2020$date[x], ' through ', biweekly_2020$date[x+1]),
+#          x='date',
+#          y=NULL) +
+#     theme_bw() +
+#     theme(plot.title = element_text(hjust = 0.5)) +
+#     scale_x_datetime(minor_breaks = '1 day') +
+#     scale_color_colorblind()
+#   print(gg_met)
+#   ggsave(paste0(metfigdirL05, '2wk_L0.5_tm5_pres_plots_', biweekly_2020$date[x], '-', biweekly_2020$date[x+1], '.jpeg'),
+#          width = 10, height = 4, units = 'in')
+# }
 
 #### 6: 08-04-2020 time is reset! ----
 ggplot(subset(pressureonly, subset=(datetime_noDST>as.Date('2020-08-04') & 
@@ -629,21 +631,21 @@ weather_L1_vert <- weather_L1 %>%
 #cycle through pressure only data again
 pressureonly <- weather_L1_vert %>% 
   filter(variable == 'pressure_hpa')
-for (x in 1:(nrow(biweekly_2020)-1)){
-  gg_met <- ggplot(subset(pressureonly, subset=(datetime_noDST>biweekly_2020$date[x] & 
-                                                  datetime_noDST < biweekly_2020$date[x+1])), aes(x=datetime_noDST, y=value)) + 
-    geom_point(aes(color = location)) +
-    labs(title=paste0('Raw Pressure Data 1h', biweekly_2020$date[x], ' through ', biweekly_2020$date[x+1]),
-         x='date',
-         y=NULL) +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5)) +
-    scale_x_datetime(minor_breaks = '1 day') +
-    scale_color_colorblind()
-  print(gg_met)
-  ggsave(paste0(metfigdirL05, '2wk_L0.5_tm6_pres_plots_', biweekly_2020$date[x], '-', biweekly_2020$date[x+1], '.jpeg'),
-         width = 10, height = 4, units = 'in')
-}
+# for (x in 1:(nrow(biweekly_2020)-1)){
+#   gg_met <- ggplot(subset(pressureonly, subset=(datetime_noDST>biweekly_2020$date[x] & 
+#                                                   datetime_noDST < biweekly_2020$date[x+1])), aes(x=datetime_noDST, y=value)) + 
+#     geom_point(aes(color = location)) +
+#     labs(title=paste0('Raw Pressure Data 1h', biweekly_2020$date[x], ' through ', biweekly_2020$date[x+1]),
+#          x='date',
+#          y=NULL) +
+#     theme_bw() +
+#     theme(plot.title = element_text(hjust = 0.5)) +
+#     scale_x_datetime(minor_breaks = '1 day') +
+#     scale_color_colorblind()
+#   print(gg_met)
+#   ggsave(paste0(metfigdirL05, '2wk_L0.5_tm6_pres_plots_', biweekly_2020$date[x], '-', biweekly_2020$date[x+1], '.jpeg'),
+#          width = 10, height = 4, units = 'in')
+# }
 
 #### 7: 2020-09-06 ----
 ggplot(subset(pressureonly, subset=(datetime_noDST>as.Date('2020-09-06') & 
@@ -708,21 +710,21 @@ weather_L1_vert <- weather_L1 %>%
 #cycle through pressure only data again
 pressureonly <- weather_L1_vert %>% 
   filter(variable == 'pressure_hpa')
-for (x in 1:(nrow(biweekly_2020)-1)){
-  gg_met <- ggplot(subset(pressureonly, subset=(datetime_noDST>biweekly_2020$date[x] & 
-                                                  datetime_noDST < biweekly_2020$date[x+1])), aes(x=datetime_noDST, y=value)) + 
-    geom_point(aes(color = location)) +
-    labs(title=paste0('Raw Pressure Data 1h', biweekly_2020$date[x], ' through ', biweekly_2020$date[x+1]),
-         x='date',
-         y=NULL) +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5)) +
-    scale_x_datetime(minor_breaks = '1 day') +
-    scale_color_colorblind()
-  print(gg_met)
-  ggsave(paste0(metfigdirL05, '2wk_L0.5_tm7_pres_plots_', biweekly_2020$date[x], '-', biweekly_2020$date[x+1], '.jpeg'),
-         width = 10, height = 4, units = 'in')
-}
+# for (x in 1:(nrow(biweekly_2020)-1)){
+#   gg_met <- ggplot(subset(pressureonly, subset=(datetime_noDST>biweekly_2020$date[x] & 
+#                                                   datetime_noDST < biweekly_2020$date[x+1])), aes(x=datetime_noDST, y=value)) + 
+#     geom_point(aes(color = location)) +
+#     labs(title=paste0('Raw Pressure Data 1h', biweekly_2020$date[x], ' through ', biweekly_2020$date[x+1]),
+#          x='date',
+#          y=NULL) +
+#     theme_bw() +
+#     theme(plot.title = element_text(hjust = 0.5)) +
+#     scale_x_datetime(minor_breaks = '1 day') +
+#     scale_color_colorblind()
+#   print(gg_met)
+#   ggsave(paste0(metfigdirL05, '2wk_L0.5_tm7_pres_plots_', biweekly_2020$date[x], '-', biweekly_2020$date[x+1], '.jpeg'),
+#          width = 10, height = 4, units = 'in')
+# }
 
 
 #### 8: 2020-11-01 ----
@@ -831,21 +833,21 @@ weather_L1_vert <- weather_L1 %>%
 #cycle through pressure only data again
 pressureonly <- weather_L1_vert %>% 
   filter(variable == 'pressure_hpa')
-for (x in 1:(nrow(biweekly_2020)-1)){
-  gg_met <- ggplot(subset(pressureonly, subset=(datetime_noDST>biweekly_2020$date[x] & 
-                                                  datetime_noDST < biweekly_2020$date[x+1])), aes(x=datetime_noDST, y=value)) + 
-    geom_point(aes(color = location)) +
-    labs(title=paste0('Raw Pressure Data 1h', biweekly_2020$date[x], ' through ', biweekly_2020$date[x+1]),
-         x='date',
-         y=NULL) +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5)) +
-    scale_x_datetime(minor_breaks = '1 day') +
-    scale_color_colorblind()
-  print(gg_met)
-  ggsave(paste0(metfigdirL05, '2wk_L0.5_tm8_pres_plots_', biweekly_2020$date[x], '-', biweekly_2020$date[x+1], '.jpeg'),
-         width = 10, height = 4, units = 'in')
-}
+# for (x in 1:(nrow(biweekly_2020)-1)){
+#   gg_met <- ggplot(subset(pressureonly, subset=(datetime_noDST>biweekly_2020$date[x] & 
+#                                                   datetime_noDST < biweekly_2020$date[x+1])), aes(x=datetime_noDST, y=value)) + 
+#     geom_point(aes(color = location)) +
+#     labs(title=paste0('Raw Pressure Data 1h', biweekly_2020$date[x], ' through ', biweekly_2020$date[x+1]),
+#          x='date',
+#          y=NULL) +
+#     theme_bw() +
+#     theme(plot.title = element_text(hjust = 0.5)) +
+#     scale_x_datetime(minor_breaks = '1 day') +
+#     scale_color_colorblind()
+#   print(gg_met)
+#   ggsave(paste0(metfigdirL05, '2wk_L0.5_tm8_pres_plots_', biweekly_2020$date[x], '-', biweekly_2020$date[x+1], '.jpeg'),
+#          width = 10, height = 4, units = 'in')
+# }
 
 
 #### 9: 2020-11-19 time reset  ----
@@ -922,21 +924,21 @@ weather_L1_vert <- weather_L1 %>%
 #cycle through pressure only data again
 pressureonly <- weather_L1_vert %>% 
   filter(variable == 'pressure_hpa')
-for (x in 1:(nrow(biweekly_2020)-1)){
-  gg_met <- ggplot(subset(pressureonly, subset=(datetime_noDST>biweekly_2020$date[x] & 
-                                                  datetime_noDST < biweekly_2020$date[x+1])), aes(x=datetime_noDST, y=value)) + 
-    geom_point(aes(color = location)) +
-    labs(title=paste0('Raw Pressure Data 1h', biweekly_2020$date[x], ' through ', biweekly_2020$date[x+1]),
-         x='date',
-         y=NULL) +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5)) +
-    scale_x_datetime(minor_breaks = '1 day') +
-    scale_color_colorblind()
-  print(gg_met)
-  ggsave(paste0(metfigdirL05, '2wk_L0.5_tm9_pres_plots_', biweekly_2020$date[x], '-', biweekly_2020$date[x+1], '.jpeg'),
-         width = 10, height = 4, units = 'in')
-}
+# for (x in 1:(nrow(biweekly_2020)-1)){
+#   gg_met <- ggplot(subset(pressureonly, subset=(datetime_noDST>biweekly_2020$date[x] & 
+#                                                   datetime_noDST < biweekly_2020$date[x+1])), aes(x=datetime_noDST, y=value)) + 
+#     geom_point(aes(color = location)) +
+#     labs(title=paste0('Raw Pressure Data 1h', biweekly_2020$date[x], ' through ', biweekly_2020$date[x+1]),
+#          x='date',
+#          y=NULL) +
+#     theme_bw() +
+#     theme(plot.title = element_text(hjust = 0.5)) +
+#     scale_x_datetime(minor_breaks = '1 day') +
+#     scale_color_colorblind()
+#   print(gg_met)
+#   ggsave(paste0(metfigdirL05, '2wk_L0.5_tm9_pres_plots_', biweekly_2020$date[x], '-', biweekly_2020$date[x+1], '.jpeg'),
+#          width = 10, height = 4, units = 'in')
+# }
 
 #### 10: 2020-12-05 blip offline ----
 ggplot(subset(pressureonly, subset=(datetime_noDST>as.Date('2020-12-05') & 
@@ -1015,8 +1017,8 @@ weather_L1_vert <- weather_L1 %>%
 pressureonly <- weather_L1_vert %>% 
   filter(variable == 'pressure_hpa')
 for (x in 1:(nrow(biweekly_2020)-1)){
-  gg_met <- ggplot(subset(pressureonly, subset=(datetime_noDST>biweekly_2020$date[x] & 
-                                                  datetime_noDST < biweekly_2020$date[x+1])), aes(x=datetime_noDST, y=value)) + 
+  gg_met <- ggplot(subset(pressureonly, subset=(datetime_noDST>biweekly_2020$date[x] &
+                                                  datetime_noDST < biweekly_2020$date[x+1])), aes(x=datetime_noDST, y=value)) +
     geom_point(aes(color = location)) +
     labs(title=paste0('Raw Pressure Data 1h', biweekly_2020$date[x], ' through ', biweekly_2020$date[x+1]),
          x='date',
@@ -1034,23 +1036,41 @@ for (x in 1:(nrow(biweekly_2020)-1)){
 
 ### 2-week plots of all data ----
 
-#plot all L0.5 plots and save to appropriate figdir
-for (i in 1:(nrow(biweekly_2020)-1)){
-  gg_met <- ggplot(subset(weather_L1_vert, subset=(datetime_noDST>biweekly_2020$date[i] & 
-                                                     datetime_noDST < biweekly_2020$date[i+1])), aes(x=datetime_noDST, y=value)) + 
-    geom_point() +
-    facet_grid(variable ~ location, scales = 'free_y') +
-    labs(title=paste0('Raw Met Data ', biweekly_2020$date[i], ' through ', biweekly_2020$date[i+1]),
-         x='date',
-         y=NULL) +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5)) +
-    scale_x_datetime(minor_breaks = '1 day') +
-    scale_color_colorblind()
-  print(gg_met)
-  ggsave(paste0(metfigdirL05, '2wk_L0.5_plots_', biweekly_2020$date[i], '-', biweekly_2020$date[i+1], '.jpeg'),
-         width = 10, height = 8, units = 'in')
-}
+# #plot all L0.5 plots and save to appropriate figdir
+# for (i in 1:(nrow(biweekly_2020)-1)){
+#   gg_met <- ggplot(subset(weather_L1_vert, subset=(datetime_noDST>biweekly_2020$date[i] & 
+#                                                      datetime_noDST < biweekly_2020$date[i+1])), aes(x=datetime_noDST, y=value)) + 
+#     geom_point() +
+#     facet_grid(variable ~ location, scales = 'free_y') +
+#     labs(title=paste0('Raw Met Data ', biweekly_2020$date[i], ' through ', biweekly_2020$date[i+1]),
+#          x='date',
+#          y=NULL) +
+#     theme_bw() +
+#     theme(plot.title = element_text(hjust = 0.5)) +
+#     scale_x_datetime(minor_breaks = '1 day') +
+#     scale_color_colorblind()
+#   print(gg_met)
+#   ggsave(paste0(metfigdirL05, '2wk_L0.5_plots_', biweekly_2020$date[i], '-', biweekly_2020$date[i+1], '.jpeg'),
+#          width = 10, height = 8, units = 'in')
+# }
+
+# #plot all together in paneled, too
+# for (i in 1:(nrow(biweekly_2020)-1)){
+#   gg_met <- ggplot(subset(weather_L1_vert, subset=(datetime_noDST>biweekly_2020$date[i] & 
+#                                                      datetime_noDST < biweekly_2020$date[i+1])), aes(x=datetime_noDST, y=value)) + 
+#     geom_point(aes(color = location)) +
+#     facet_grid(variable ~ ., scales = 'free_y') +
+#     labs(title=paste0('Raw Met Data ', biweekly_2020$date[i], ' through ', biweekly_2020$date[i+1]),
+#          x='date',
+#          y=NULL) +
+#     theme_bw() +
+#     theme(plot.title = element_text(hjust = 0.5)) +
+#     scale_x_datetime(minor_breaks = '1 day') +
+#     scale_color_colorblind()
+#   print(gg_met)
+#   ggsave(paste0(metfigdirL05, '2wk_L0.5_plots_nofacet_', biweekly_2020$date[i], '-', biweekly_2020$date[i+1], '.jpeg'),
+#          width = 6, height = 8, units = 'in')
+# }
 
 
 ### Q3 2019 ----
@@ -1186,13 +1206,14 @@ ggplot(subset(weather_L1_vert, subset=(location == location_a & datetime_noDST>=
     theme_bw() +
     theme(plot.title = element_text(hjust = 0.5)) +
     scale_x_datetime(minor_breaks = '1 hour')
+
 # HC all data from 2019-10-31 through 2019-11-01 17:00; end of intermittent data reporting
 ix=which(weather_L1$location == 'HC' & weather_L1$datetime_noDST>=as.POSIXct('2019-10-31', tz='Etc/GMT+5') & 
            weather_L1$datetime_noDST<as.POSIXct('2019-11-01 17:00', tz='Etc/GMT+5'))
 for (i in c(allvars)) {weather_L1[ix,i]=NA}
 
 location_b = 'SF'
-start_date_b = '2019-12-30'
+start_date_b = '2019-12-25'
 end_date_b = '2020-01-01'
 
 ggplot(subset(weather_L1_vert, subset=(location == location_b & datetime_noDST>= as.POSIXct(start_date_b, tz= 'Etc/GMT+5') & datetime_noDST < as.POSIXct(end_date_b, tz= 'Etc/GMT+5'))),  aes(x=datetime_noDST, y=value)) +
@@ -1207,11 +1228,14 @@ ggplot(subset(weather_L1_vert, subset=(location == location_b & datetime_noDST>=
 
 #Errant data observations:
 # SF UV and SR should be flagged as inconsistently reporting 'i' from 2019-11-29 until end of period
+# *SF humidity wrong Dec 30-31
 
-ix=which(weather_L1$location == 'SF' & weather_L1$datetime_noDST>=as.POSIXct('2019-12-30 22:00', tz='Etc/GMT+5') & weather_L1$datetime_noDST<as.POSIXct('2019-12-31 12:00', tz='Etc/GMT+5'))
+ix=which(weather_L1$location == 'SF' & weather_L1$datetime_noDST>=as.POSIXct('2019-12-30 22:00', tz='Etc/GMT+5') & 
+           weather_L1$datetime_noDST<as.POSIXct('2019-12-31 12:00', tz='Etc/GMT+5'))
 for (i in c(tempvars)) {weather_L1[ix,i]=NA}
 
-ix=which(weather_L1$location == 'SF' & weather_L1$datetime_noDST>=as.POSIXct('2019-11-29', tz='Etc/GMT+5') & weather_L1$datetime_noDST<as.POSIXct('2020-01-01', tz='Etc/GMT+5'))
+ix=which(weather_L1$location == 'SF' & weather_L1$datetime_noDST>=as.POSIXct('2019-11-29', tz='Etc/GMT+5') & 
+           weather_L1$datetime_noDST<as.POSIXct('2020-01-01', tz='Etc/GMT+5'))
 weather_L1$UV_flag = NA_character_
 weather_L1$SR_flag = NA_character_
 for (i in c('UV_flag', 'SR_flag')) {weather_L1[ix,i]='i'}
@@ -1263,7 +1287,6 @@ ggplot(subset(weather_L1_vert, subset=(location == location_b & datetime_noDST>=
 ### Q1 2020 ----
 # Data observations:
 # * UV and SR data at SF intermittent until Jan 10th - flat-lined on the 13th, need to see if there is any positive value there, or may need to flag as suspect.
-
 #set time period of interest:
 location_a = 'SF'
 start_date_a = '2020-01-10'
@@ -1346,16 +1369,18 @@ weather_L1 %>%
 # Observations:
 # 
 # * SF offline beginning May 1
-# * precip data at HC need to be recoded after sensors go offline May 24 through end of period, since it appears that precip is not recording any rain events seen at other stations 
+# * precip data at HC need to be recoded after sensors go offline May 24 through end of period, since it 
+#appears that precip is not recording any rain events seen at other stations 
 
 # 2020-05-24
 location_a == 'HC'
 start_date_a = '2020-05-23'
 end_date_a = '2020-05-25'
-
-ggplot(subset(weather_L1_vert, subset=(location == location_a & 
-                                         datetime_noDST>= as.POSIXct(start_date_a, tz= 'Etc/GMT+5') & 
-                                         datetime_noDST < as.POSIXct(end_date_a, tz= 'Etc/GMT+5'))),  
+data <- subset(weather_L1_vert, subset=(location == location_a & 
+                                          datetime_noDST>= as.POSIXct(start_date_a, tz= 'Etc/GMT+5') & 
+                                          datetime_noDST < as.POSIXct(end_date_a, tz= 'Etc/GMT+5') &
+                                          !is.na(value)))
+ggplot(data,  
        aes(x=datetime_noDST, y=value)) +
   geom_point() +
   facet_grid(variable ~ ., scales = 'free_y') +
@@ -1366,491 +1391,138 @@ ggplot(subset(weather_L1_vert, subset=(location == location_a &
   theme(plot.title = element_text(hjust = 0.5)) +
   scale_x_datetime(minor_breaks = '1 hour')
 
+ix = which(weather_L1$location == 'HC' & 
+             weather_L1$datetime_noDST>=as.POSIXct('2020-05-24 10:00', tz='Etc/GMT+5') & 
+             weather_L1$datetime_noDST<as.POSIXct('2020-07-20', tz='Etc/GMT+5'))
+for (i in c(allvars)) {weather_L1[ix,i]=NA}
 
-# 
-# 
-# 
-# 
-# ***
-# 
-# ## 2020-10 download 
-# 
-# #set time period of interest:
-# start_date = '2020-07-01'
-# end_date = '2020-10-01'
-# 
-# #create a list of weeks during time period of interest, chose first and 3rd
-# week_2020Q3 <- seq(as.Date(start_date), as.Date(end_date), 'week')  %>% 
-#   as.data.frame(.) %>% 
-#   dplyr::rename(date = '.') %>% 
-#   mutate(month = format(date, '%m')) %>% 
-#   group_by(month) %>%
-#   slice(., c(1,3)) %>% 
-#   ungroup() %>%  #change this to the inclusive end date so that for-loop properly displays final graph
-#   add_row(date = as.Date(end_date), month = '10')
-# 
-# #plot all L0.5 plots and save to appropriate figdir
-# for (i in 1:(nrow(week_2020Q3)-1)){
-#   gg_met <- ggplot(subset(weather_L0_vert, subset=(datetime_noDST>week_2020Q3$date[i] & datetime_noDST < week_2020Q3$date[i+1])), aes(x=datetime_noDST, y=value)) + 
-#    geom_point() +
-#     facet_grid(variable ~ location, scales = 'free_y') +
-#     labs(title=paste0('Raw Met Data ', week_2020Q3$date[i], ' through ', week_2020Q3$date[i+1]),
-#        x='date',
-#        y=NULL) +
-#     theme_bw() +
-#     theme(plot.title = element_text(hjust = 0.5)) +
-#     scale_x_datetime(minor_breaks = '1 day')
-#   print(gg_met)
-#   ggsave(paste0(metfigdirL1, '2wk_L0.5_plots_', week_2020Q3$date[i], '-', week_2020Q3$date[i+1], '.jpeg'))
-# }
-# 
-# Obesrvations: 
-# 
-# * Data need to be recoded at HC prior to Jul 09 except bar pressure
-# * Data at HC from Jul 09-Jul 24 need to be moved to end August 4
-# 
-# location_a = 'HC'
-# start_date_a = '2020-07-09'
-# end_date_a = '2020-07-10'
-# 
-# location_b = 'HC'
-# start_date_b = '2020-07-24'
-# end_date_b = '2020-07-25'
-# 
-# location_c = 'HC'
-# start_date_c = '2020-08-04'
-# end_date_c = '2020-08-05'
-# 
-# 
-# ggplot(subset(weather_L0_vert, subset=(datetime_noDST>= as.POSIXct(start_date_a, tz= 'Etc/GMT+5') & datetime_noDST < as.POSIXct(end_date_a, tz= 'Etc/GMT+5'))),  aes(x=datetime_noDST, y=value, color = location)) +
-#     geom_point() +
-#       facet_grid(variable ~ ., scales = 'free_y') +
-#     labs(title=paste0('Raw Met Data ', location_a, ' ', format(as.Date(start_date_a), '%b'), format(as.Date(start_date_a), '%Y')),
-#        x='date',
-#        y=NULL) +
-#     theme_bw() +
-#     theme(plot.title = element_text(hjust = 0.5)) +
-#     scale_x_datetime(minor_breaks = '1 hour') +
-#   scale_color_colorblind()
-# ggsave(paste0(metfigdirL1, 'zoom_L0.5_flag_plots_', start_date_a, '-', end_date_a, '.jpeg'))
-# 
-# ggplot(subset(weather_L0_vert, subset=(datetime_noDST>= as.POSIXct(start_date_b, tz= 'Etc/GMT+5') & datetime_noDST < as.POSIXct(end_date_b, tz= 'Etc/GMT+5'))),  aes(x=datetime_noDST, y=value, color = location)) +
-#     geom_point() +
-#       facet_grid(variable ~ ., scales = 'free_y') +
-#     labs(title=paste0('Raw Met Data ', location_b, ' ', format(as.Date(start_date_b), '%b'), format(as.Date(start_date_b), '%Y')),
-#        x='date',
-#        y=NULL) +
-#     theme_bw() +
-#     theme(plot.title = element_text(hjust = 0.5)) +
-#     scale_x_datetime(minor_breaks = '1 hour') +
-#   scale_color_colorblind()
-# ggsave(paste0(metfigdirL1, 'zoom_L0.5_flag_plots_', start_date_b, '-', end_date_b, '.jpeg'))
-# 
-# ggplot(subset(weather_L0_vert, subset=(datetime_noDST>= as.POSIXct(start_date_c, tz= 'Etc/GMT+5') & datetime_noDST < as.POSIXct(end_date_c, tz= 'Etc/GMT+5'))),  aes(x=datetime_noDST, y=value, color = location)) +
-#     geom_point() +
-#       facet_grid(variable ~ ., scales = 'free_y') +
-#     labs(title=paste0('Raw Met Data ', location_c, ' ', format(as.Date(start_date_c), '%b'), format(as.Date(start_date_c), '%Y')),
-#        x='date',
-#        y=NULL) +
-#     theme_bw() +
-#     theme(plot.title = element_text(hjust = 0.5)) +
-#     scale_x_datetime(minor_breaks = '1 hour') +
-#   scale_color_colorblind()
-#   ggsave(paste0(metfigdirL1, 'zoom_L0.5_flag_plots_', start_date_c, '-', end_date_c, '.jpeg'))
-# 
-# 
-# Jul 24 07:00  is actually Aug 4 17:00- need to move data 11 days 10 hours ahead
-# 
-# Recode, mutate and flag data as needed:
-# # recode random data showing up in HC feed
-# weather_L1 <- weather_L1 %>% 
-#   mutate_at(vars(all_of(allnumvars)),
-#             ~(case_when(location == 'HC' & 
-#                               datetime_noDST >= as.POSIXct('2020-06-24 12:00', tz= 'Etc/GMT+5') & 
-#                               datetime_noDST < as.POSIXct('2020-07-09 7:00', tz= 'Etc/GMT+5') ~ NA_real_,
-#                             TRUE ~ .))) %>% 
-#   mutate_at(vars(all_of(allcharvars)),
-#             ~(case_when(location == 'HC' & 
-#                               datetime_noDST >= as.POSIXct('2020-06-24 12:00', tz= 'Etc/GMT+5') & 
-#                               datetime_noDST < as.POSIXct('2020-07-09 7:00', tz= 'Etc/GMT+5') ~ NA_character_,
-#                             TRUE ~ .)))
-# 
-# #pull out datetime that needs to be adjusted
-# HC_timechange <- weather_L1 %>% 
-#   filter(location == 'HC' &
-#            datetime_noDST >= as.POSIXct('2020-07-09 7:00', tz='Etc/GMT+5') &
-#            datetime_noDST < as.POSIXct('2020-08-04 16:30', tz='Etc/GMT+5'))
-# #create new column with adjusted datetime, dplyr::rename column
-# HC_timechange <- HC_timechange %>% 
-#   mutate(corr_datetime_noDST = as.POSIXct(datetime_noDST + days(11) + hours(10))) %>% 
-#   filter(corr_datetime_noDST < as.POSIXct('2020-08-04 16:30', tz='Etc/GMT+5')) %>% 
-#   select(-datetime_noDST) %>% 
-#   dplyr::rename(datetime_noDST = corr_datetime_noDST)
-# #round times to nearest 30 minutes, there are some wonky time readings in this dataset
-# HC_timechange <- HC_timechange %>% 
-#   mutate(datetime_noDST = round_date(datetime_noDST, unit = '30 min'))
-# #create a list of datetimes for adding back into the full datset
-# HCdatetimelist = seq(from = as.POSIXct('2020-07-09 7:00', tz = 'Etc/GMT+5'), 
-#                           to = as.POSIXct('2020-08-04 16:00', tz = 'Etc/GMT+5'),
-#                           by = '30 min')
-# #create a data frame from the list and add location/source info
-# HCdatetimelist <- as.data.frame(HCdatetimelist) %>% 
-#   dplyr::rename(datetime_noDST = HCdatetimelist) %>% 
-#   mutate(location = 'HC',
-#          source = 'Herrick_Cove_7-1-20_12-00_AM_3_Month_1602083357_v2.csv')
-# #join back together and add a flag of 'm' for modified time
-# HC_timechange <- left_join(HCdatetimelist, HC_timechange) %>% 
-#   mutate(time_flag = 'm: +11d 10h')
-# 
-# #create a weather_L1 dataset without the above data in it
-# allotherdata <- weather_L1 %>% 
-#   filter(!(location == 'HC' &
-#            datetime_noDST >= as.POSIXct('2020-07-09 7:00', tz='Etc/GMT+5') &
-#            datetime_noDST < as.POSIXct('2020-08-04 16:30', tz='Etc/GMT+5')))
-# 
-# weather_L1 <- full_join(allotherdata, HC_timechange) %>% 
-#   arrange(datetime_noDST, location)
-# 
-# #note, this will create 'more' observations in the dataset than before, that's because there are missing data in the HC stream for this time period
-# 
-# weather_L1_vert <- weather_L1 %>% 
-#   select(location, datetime_noDST, source, all_of(dataforviz)) %>% #select only the data for visualization
-#   mutate(winddir = case_when(winddir == 'N' ~ '0',
-#                              winddir == 'NNE' ~ '1', 
-#                              winddir == 'NE' ~ '2',
-#                              winddir == 'ENE' ~'3',
-#                              winddir == 'E' ~ '4',
-#                              winddir == 'ESE' ~ '5',
-#                              winddir == 'SE' ~ '6',
-#                              winddir == 'SSE' ~ '7',
-#                              winddir == 'S' ~ '8',
-#                              winddir == 'SSW' ~ '9',
-#                              winddir == 'SW' ~ '10', 
-#                              winddir == 'WSW' ~ '11', 
-#                              winddir == 'W' ~ '12',
-#                              winddir == 'WNW' ~ '13',
-#                              winddir == 'NW' ~ '14',
-#                              winddir == 'NNW' ~ '15')) %>% 
-#   gather(variable, value, -location, - datetime_noDST, -source) %>% 
-#   mutate(value = as.numeric(value))
-# 
-# Plot to see if the change lines up:
-# ggplot(subset(weather_L1_vert, subset=(datetime_noDST>= as.POSIXct(start_date_a, tz= 'Etc/GMT+5') & datetime_noDST < as.POSIXct(end_date_a, tz= 'Etc/GMT+5'))),  aes(x=datetime_noDST, y=value, color = location)) +
-#     geom_point() +
-#       facet_grid(variable ~ ., scales = 'free_y') +
-#     labs(title=paste0('QAQC Met Data ', location_a, ' ', format(as.Date(start_date_a), '%b'), format(as.Date(start_date_a), '%Y')),
-#        x='date',
-#        y=NULL) +
-#     theme_bw() +
-#     theme(plot.title = element_text(hjust = 0.5)) +
-#     scale_x_datetime(minor_breaks = '1 hour') +
-#   scale_color_colorblind()
-# ggsave(paste0(metfigdirL1, 'zoom_L0.5_flag_plots_', start_date_a, '-', end_date_a, '.jpeg'))
-# 
-# ggplot(subset(weather_L1_vert, subset=(datetime_noDST>= as.POSIXct(start_date_b, tz= 'Etc/GMT+5') & datetime_noDST < as.POSIXct(end_date_b, tz= 'Etc/GMT+5'))),  aes(x=datetime_noDST, y=value, color = location)) +
-#     geom_point() +
-#       facet_grid(variable ~ ., scales = 'free_y') +
-#     labs(title=paste0('QAQC Met Data ', location_b, ' ', format(as.Date(start_date_b), '%b'), format(as.Date(start_date_b), '%Y')),
-#        x='date',
-#        y=NULL) +
-#     theme_bw() +
-#     theme(plot.title = element_text(hjust = 0.5)) +
-#     scale_x_datetime(minor_breaks = '1 hour') +
-#   scale_color_colorblind()
-# ggsave(paste0(metfigdirL1, 'zoom_L0.5_flag_plots_', start_date_b, '-', end_date_b, '.jpeg'))
-# 
-# ggplot(subset(weather_L1_vert, subset=(datetime_noDST>= as.POSIXct(start_date_c, tz= 'Etc/GMT+5') & datetime_noDST < as.POSIXct(end_date_c, tz= 'Etc/GMT+5'))),  aes(x=datetime_noDST, y=value, color = location)) +
-#     geom_point() +
-#       facet_grid(variable ~ ., scales = 'free_y') +
-#     labs(title=paste0('QAQC Met Data ', location_c, ' ', format(as.Date(start_date_c), '%b'), format(as.Date(start_date_c), '%Y')),
-#        x='date',
-#        y=NULL) +
-#     theme_bw() +
-#     theme(plot.title = element_text(hjust = 0.5)) +
-#     scale_x_datetime(minor_breaks = '1 hour') +
-#   scale_color_colorblind()
-#   ggsave(paste0(metfigdirL1, 'zoom_L0.5_flag_plots_', start_date_c, '-', end_date_c, '.jpeg'))
-# 
-# 
-# Look for outliers by plotting all sites on same graph over 3-month period:
-# #plot all L1 plots and save to appropriate figdir
-# for (i in 1:(nrow(week_2020Q3)-1)){
-#   gg_met <- ggplot(subset(weather_L1_vert, subset=(datetime_noDST>week_2020Q3$date[i] & datetime_noDST < week_2020Q3$date[i+1])), aes(x=datetime_noDST, y=value, color = location)) + 
-#    geom_point() +
-#     facet_grid(variable ~ ., scales = 'free_y') +
-#     labs(title=paste0('QAQC Met Data ', week_2020Q3$date[i], ' through ', week_2020Q3$date[i+1]),
-#        x='date',
-#        y=NULL) +
-#     theme_bw() +
-#     theme(plot.title = element_text(hjust = 0.5)) +
-#     scale_x_datetime(minor_breaks = '1 day') +
-#     scale_color_colorblind()
-#   print(gg_met)
-#   ggsave(paste0(metfigdirL1, '2wk_L0.5_plots_overlay_', week_2020Q3$date[i], '-', week_2020Q3$date[i+1], '.jpeg'))
-# }
-# 
-# It does appear that HC is a little 'off' beggining Sept 6. Flagging with 't'.
-# 
-# ix=which(weather_L1$location == 'HC' & weather_L1$datetime_noDST>=as.POSIXct('2020-09-06', tz='Etc/GMT+5') & weather_L1$datetime_noDST<as.POSIXct('2020-10-01', tz='Etc/GMT+5'))
-# weather_L1$time_flag[ix]='t'
-# 
-# ***
-# 
-# ## 2021-01 download 
-# 
-# #set time period of interest:
-# start_date = '2020-10-01'
-# end_date = '2021-01-01'
-# 
-# #create a list of weeks during time period of interest, chose first and 3rd
-# week_2020Q4 <- seq(as.Date(start_date), as.Date(end_date), 'week')  %>% 
-#   as.data.frame(.) %>% 
-#   dplyr::rename(date = '.') %>% 
-#   mutate(month = format(date, '%m')) %>% 
-#   group_by(month) %>%
-#   slice(., c(1,3)) %>% 
-#   ungroup() %>%  #change this to the inclusive end date so that for-loop properly displays final graph
-#   add_row(date = as.Date(end_date), month = '01')
-# 
-# #plot all L0.5 plots and save to appropriate figdir
-# for (i in 1:(nrow(week_2020Q4)-1)){
-#   gg_met <- ggplot(subset(weather_L0_vert, subset=(datetime_noDST>week_2020Q4$date[i] & datetime_noDST < week_2020Q4$date[i+1])), aes(x=datetime_noDST, y=value)) + 
-#    geom_point() +
-#     facet_grid(variable ~ location, scales = 'free_y') +
-#     labs(title=paste0('Raw Met Data ', week_2020Q4$date[i], ' through ', week_2020Q4$date[i+1]),
-#        x='date',
-#        y=NULL) +
-#     theme_bw() +
-#     theme(plot.title = element_text(hjust = 0.5)) +
-#     scale_x_datetime(minor_breaks = '1 day')
-#   print(gg_met)
-#   ggsave(paste0(metfigdirL1, '2wk_L0.5_plots_', week_2020Q4$date[i], '-', week_2020Q4$date[i+1], '.jpeg'))
-# }
-# 
-# Obesrvations: 
-# 
-# * need to look more closely at Oct 11-12, odd blip in temp at GM
-# * HC gap in data on Dec 5-6; step in data in early hours
-# 
-# Notes from LSPA:
-# 
-# * Dec 1 rain at HC there was a pine needle in sensor
-# * Dec 5, HC stopped recording, may have timing issue
-# 
-# location_a = 'GM'
-# start_date_a = '2020-10-12'
-# end_date_a = '2020-10-14'
-# 
-# location_b = 'HC'
-# start_date_b = '2020-12-01'
-# end_date_b = '2020-12-02'
-# 
-# location_c = 'HC'
-# start_date_c = '2020-12-05'
-# end_date_c = '2020-12-07'
-# 
-# 
-# ggplot(subset(weather_L0_vert, subset=(datetime_noDST>= as.POSIXct(start_date_a, tz= 'Etc/GMT+5') & datetime_noDST < as.POSIXct(end_date_a, tz= 'Etc/GMT+5'))),  aes(x=datetime_noDST, y=value, color = location)) +
-#     geom_point() +
-#       facet_grid(variable ~ ., scales = 'free_y') +
-#     labs(title=paste0('Raw Met Data ', location_a, ' ', format(as.Date(start_date_a), '%b'), format(as.Date(start_date_a), '%Y')),
-#        x='date',
-#        y=NULL) +
-#     theme_bw() +
-#     theme(plot.title = element_text(hjust = 0.5)) +
-#     scale_x_datetime(minor_breaks = '1 hour') +
-#   scale_color_colorblind()
-# ggsave(paste0(metfigdirL1, 'zoom_L0.5_flag_plots_', start_date_a, '-', end_date_a, '.jpeg'))
-# 
-# ggplot(subset(weather_L0_vert, subset=(datetime_noDST>= as.POSIXct(start_date_b, tz= 'Etc/GMT+5') & datetime_noDST < as.POSIXct(end_date_b, tz= 'Etc/GMT+5'))),  aes(x=datetime_noDST, y=value, color = location)) +
-#     geom_point() +
-#       facet_grid(variable ~ ., scales = 'free_y') +
-#     labs(title=paste0('Raw Met Data ', location_b, ' ', format(as.Date(start_date_b), '%b'), format(as.Date(start_date_b), '%Y')),
-#        x='date',
-#        y=NULL) +
-#     theme_bw() +
-#     theme(plot.title = element_text(hjust = 0.5)) +
-#     scale_x_datetime(minor_breaks = '1 hour') +
-#   scale_color_colorblind()
-# ggsave(paste0(metfigdirL1, 'zoom_L0.5_flag_plots_', start_date_b, '-', end_date_b, '.jpeg'))
-# 
-# ggplot(subset(weather_L0_vert, subset=(datetime_noDST>= as.POSIXct(start_date_c, tz= 'Etc/GMT+5') & datetime_noDST < as.POSIXct(end_date_c, tz= 'Etc/GMT+5'))),  aes(x=datetime_noDST, y=value, color = location)) +
-#     geom_point() +
-#       facet_grid(variable ~ ., scales = 'free_y') +
-#     labs(title=paste0('Raw Met Data ', location_c, ' ', format(as.Date(start_date_c), '%b'), format(as.Date(start_date_c), '%Y')),
-#        x='date',
-#        y=NULL) +
-#     theme_bw() +
-#     theme(plot.title = element_text(hjust = 0.5)) +
-#     scale_x_datetime(minor_breaks = '1 hour') +
-#   scale_color_colorblind()
-#   ggsave(paste0(metfigdirL1, 'zoom_L0.5_flag_plots_', start_date_c, '-', end_date_c, '.jpeg'))
-# 
-# 
-# Details:
-# 
-# * Oct 11 at GM looks fine, probably due to wind direction change.
-# * Dec 1, rain at HC should be recoded 2020-12-01 14:00 to NA
-# * Dec 5-6 at HC, data needs to be moved from 2020-12-05 21:30 to 2020-12-06 9:00 such that the data end at 22:00
-# 
-# # recode errant precip measure at HC because of pine needle
-# weather_L1 <- weather_L1 %>% 
-#   mutate_at(vars(precipvars), 
-#             funs(case_when(location == 'HC' & 
-#                               datetime_noDST == as.POSIXct('2020-12-01 14:00', tz= 'Etc/GMT+5') ~ NA_real_,
-#                             TRUE ~ .)))
-# 
-# #pull out datetime that needs to be adjusted
-# HC_timechange <- weather_L1 %>% 
-#   filter(location == 'HC' &
-#            datetime_noDST >= as.POSIXct('2020-12-05 21:30', tz='Etc/GMT+5') &
-#            datetime_noDST < as.POSIXct('2020-12-06 9:00', tz='Etc/GMT+5'))
-# #create new column with adjusted datetime, dplyr::rename column
-# HC_timechange <- HC_timechange %>% 
-#   mutate(corr_datetime_noDST = as.POSIXct(datetime_noDST + hours(13))) %>% 
-#   filter(corr_datetime_noDST < as.POSIXct('2020-12-06 22:00', tz='Etc/GMT+5')) %>% 
-#   select(-datetime_noDST) %>% 
-#   dplyr::rename(datetime_noDST = corr_datetime_noDST)
-# 
-# #create a list of datetimes for adding back into the full datset
-# HCdatetimelist = seq(from = as.POSIXct('2020-12-05 21:30', tz = 'Etc/GMT+5'), 
-#                           to = as.POSIXct('2020-12-06 21:30', tz = 'Etc/GMT+5'),
-#                           by = '30 min')
-# #create a data frame from the list and add location/source info
-# HCdatetimelist <- as.data.frame(HCdatetimelist) %>% 
-#   dplyr::rename(datetime_noDST = HCdatetimelist) %>% 
-#   mutate(location = 'HC',
-#          source = 'Herrick_Cove_10-1-20_12-00_AM_3_Month_1609777537_v2.csv')
-# #join back together and add a flag of 'm' for modified time
-# HC_timechange <- left_join(HCdatetimelist, HC_timechange) %>% 
-#   mutate(time_flag = 'm: +13h')
-# 
-# #create a weather_L1 dataset without the above data in it
-# allotherdata <- weather_L1 %>% 
-#   filter(!(location == 'HC' &
-#            datetime_noDST >= as.POSIXct('2020-12-05 21:30', tz='Etc/GMT+5') &
-#            datetime_noDST < as.POSIXct('2020-12-06 22:00', tz='Etc/GMT+5')))
-# 
-# weather_L1 <- full_join(allotherdata, HC_timechange) %>% 
-#   arrange(datetime_noDST, location)
-# 
-# #note, this will create 'more' observations in the dataset than before, that's because there are missing data in the HC stream for this time period
-# 
-# weather_L1_vert <- weather_L1 %>% 
-#   select(location, datetime_noDST, source, all_of(dataforviz)) %>% #select only the data for visualization
-#   mutate(winddir = case_when(winddir == 'N' ~ '0',
-#                              winddir == 'NNE' ~ '1', 
-#                              winddir == 'NE' ~ '2',
-#                              winddir == 'ENE' ~'3',
-#                              winddir == 'E' ~ '4',
-#                              winddir == 'ESE' ~ '5',
-#                              winddir == 'SE' ~ '6',
-#                              winddir == 'SSE' ~ '7',
-#                              winddir == 'S' ~ '8',
-#                              winddir == 'SSW' ~ '9',
-#                              winddir == 'SW' ~ '10', 
-#                              winddir == 'WSW' ~ '11', 
-#                              winddir == 'W' ~ '12',
-#                              winddir == 'WNW' ~ '13',
-#                              winddir == 'NW' ~ '14',
-#                              winddir == 'NNW' ~ '15')) %>% 
-#   gather(variable, value, -location, - datetime_noDST, -source) %>% 
-#   mutate(value = as.numeric(value))
-# 
-# Now to plot to check if QAQC was successful
-# ggplot(subset(weather_L1_vert, subset=(datetime_noDST>= as.POSIXct(start_date_b, tz= 'Etc/GMT+5') & datetime_noDST < as.POSIXct(end_date_b, tz= 'Etc/GMT+5'))),  aes(x=datetime_noDST, y=value, color = location)) +
-#     geom_point() +
-#       facet_grid(variable ~ ., scales = 'free_y') +
-#     labs(title=paste0('QAQC Met Data ', location_b, ' ', format(as.Date(start_date_b), '%b'), format(as.Date(start_date_b), '%Y')),
-#        x='date',
-#        y=NULL) +
-#     theme_bw() +
-#     theme(plot.title = element_text(hjust = 0.5)) +
-#     scale_x_datetime(minor_breaks = '1 hour') +
-#   scale_color_colorblind()
-# ggsave(paste0(metfigdirL1, 'zoom_L1_flag_plots_', start_date_b, '-', end_date_b, '.jpeg'))
-# 
-# ggplot(subset(weather_L1_vert, subset=(datetime_noDST>= as.POSIXct(start_date_c, tz= 'Etc/GMT+5') & datetime_noDST < as.POSIXct(end_date_c, tz= 'Etc/GMT+5'))),  aes(x=datetime_noDST, y=value, color = location)) +
-#     geom_point() +
-#       facet_grid(variable ~ ., scales = 'free_y') +
-#     labs(title=paste0('QAQC Met Data ', location_c, ' ', format(as.Date(start_date_c), '%b'), format(as.Date(start_date_c), '%Y')),
-#        x='date',
-#        y=NULL) +
-#     theme_bw() +
-#     theme(plot.title = element_text(hjust = 0.5)) +
-#     scale_x_datetime(minor_breaks = '1 hour') +
-#   scale_color_colorblind()
-#   ggsave(paste0(metfigdirL1, 'zoom_L1_flag_plots_', start_date_c, '-', end_date_c, '.jpeg'))
-# 
-# ```
-# 
-# 
-# Look for outliers by plotting all sites on same graph over 3-month period:
-# #plot all L1 plots and save to appropriate figdir
-# for (i in 1:(nrow(week_2020Q4)-1)){
-#   gg_met <- ggplot(subset(weather_L1_vert, subset=(datetime_noDST>week_2020Q4$date[i] & datetime_noDST < week_2020Q4$date[i+1])), aes(x=datetime_noDST, y=value, color = location)) + 
-#    geom_point() +
-#     facet_grid(variable ~ ., scales = 'free_y') +
-#     labs(title=paste0('QAQC Met Data ', week_2020Q4$date[i], ' through ', week_2020Q4$date[i+1]),
-#        x='date',
-#        y=NULL) +
-#     theme_bw() +
-#     theme(plot.title = element_text(hjust = 0.5)) +
-#     scale_x_datetime(minor_breaks = '1 day') +
-#     scale_color_colorblind()
-#   print(gg_met)
-#   ggsave(paste0(metfigdirL1, '2wk_L0.5_plots_overlay_', week_2020Q4$date[i], '-', week_2020Q4$date[i+1], '.jpeg'))
-# }
-# 
-# 
-# Notes:
-# * HC was a little off at end of last quarter, need to continue flag 't' until Nov 19, when there was a data gap.
+weather_L1_vert <- weather_L1 %>%
+  select(location, datetime_noDST, source, all_of(dataforviz)) %>% #select only the data for visualization
+  mutate(winddir = case_when(winddir == 'N' ~ '0',
+                             winddir == 'NNE' ~ '1',
+                             winddir == 'NE' ~ '2',
+                             winddir == 'ENE' ~'3',
+                             winddir == 'E' ~ '4',
+                             winddir == 'ESE' ~ '5',
+                             winddir == 'SE' ~ '6',
+                             winddir == 'SSE' ~ '7',
+                             winddir == 'S' ~ '8',
+                             winddir == 'SSW' ~ '9',
+                             winddir == 'SW' ~ '10',
+                             winddir == 'WSW' ~ '11',
+                             winddir == 'W' ~ '12',
+                             winddir == 'WNW' ~ '13',
+                             winddir == 'NW' ~ '14',
+                             winddir == 'NNW' ~ '15')) %>%
+  gather(variable, value, -location, - datetime_noDST, -source) %>%
+  mutate(value = as.numeric(value))
 
-# location_a = 'HC'
-# start_date_a = '2020-11-19'
-# end_date_a = '2020-11-20'
-# 
-# 
-# ggplot(subset(weather_L0_vert, subset=(datetime_noDST>= as.POSIXct(start_date_a, tz= 'Etc/GMT+5') & datetime_noDST < as.POSIXct(end_date_a, tz= 'Etc/GMT+5'))),  aes(x=datetime_noDST, y=value, color = location)) +
-#     geom_point() +
-#       facet_grid(variable ~ ., scales = 'free_y') +
-#     labs(title=paste0('Raw Met Data ', location_a, ' ', format(as.Date(start_date_a), '%b'), format(as.Date(start_date_a), '%Y')),
-#        x='date',
-#        y=NULL) +
-#     theme_bw() +
-#     theme(plot.title = element_text(hjust = 0.5)) +
-#     scale_x_datetime(minor_breaks = '1 hour') +
-#   scale_color_colorblind()
-# ggsave(paste0(metfigdirL1, 'zoom_L0.5_flag_plots_', start_date_a, '-', end_date_a, '.jpeg'))
-# 
-# Data gap begins at 16:00, flag data up until that point.
-# 
-# ix=which(weather_L1$location == 'HC' & weather_L1$datetime_noDST>=as.POSIXct('2020-10-01', tz='Etc/GMT+5') & weather_L1$datetime_noDST<as.POSIXct('2020-11-19 16:00', tz='Etc/GMT+5'))
-# weather_L1$time_flag[ix]='t'
+#plot to check
+data <- subset(weather_L1_vert, subset=(location == location_a & 
+                                          datetime_noDST>= as.POSIXct(start_date_a, tz= 'Etc/GMT+5') & 
+                                          datetime_noDST < as.POSIXct(end_date_a, tz= 'Etc/GMT+5')))
+
+ggplot(data,  
+       aes(x=datetime_noDST, y=value)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title=paste0('Raw Met Data ', location_a, ' ', format(as.Date(start_date_a), '%b'), format(as.Date(start_date_a), '%Y')),
+       x='date',
+       y=NULL) +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  scale_x_datetime(minor_breaks = '1 hour')
+
+### Q4 2020----
+
+# # recode and flag errant precip measure at HC because of pine needle
+
+weather_L1 <- weather_L1 %>%
+  mutate_at(vars(precipvars),
+            ~(case_when(location == 'HC' &
+                              datetime_noDST == as.POSIXct('2020-12-01 14:00', tz= 'Etc/GMT+5') ~ NA_real_,
+                            TRUE ~ .))) %>% 
+  mutate(rain_flag = case_when(location == 'HC' & datetime_noDST == as.POSIXct('2020-12-01 14:00', tz = 'Etc/GMT+5') ~ 'pine needle removed from rain gauge; data prior may not be precise due to clogged gauge',
+                                         TRUE ~ ''))
+
+
+## Overall data flags ----
  
-# 
-# ***
-# 
-# # Overall data flags
-# 
 # Now to add flags to the data that are consistently wonky due to weather station placement:
 # 
 # * SF uv/rad flagged as obscured in AM hours
 # * SF bar pressure flagged because it's consistently lower than other 2 locations
-# 
-# weather_L1 <- weather_L1 %>% 
-#   mutate_at(vars(UV_flag, SR_flag),
-#             funs(case_when(location == 'SF' & is.na(.) ~ 'oAM',
-#                            location == 'SF' & !is.na(.) ~ paste('oAM', ., sep = '; '),
-#                            TRUE ~ .))) %>% 
-#   mutate(BP_flag = case_when(location == 'SF' ~ 'l',
-#                              TRUE ~ NA_character_)) 
-#          
-# 
-# 
-# # Export QAQC Data
-# 
-# weather_L1 %>% 
-#   mutate(instrument_datetime = as.character(instrument_datetime),
-#          datetime_noDST = as.character(datetime_noDST)) %>% 
-#   write_csv(paste0(datadir, 'L1 data/davis_weather_data_07-2019_', L0_enddate, '_L1_v', L1_versiondate, '.csv'))
+
+weather_L1 <- weather_L1 %>%
+  mutate_at(vars(UV_flag, SR_flag),
+            funs(case_when(location == 'SF' & is.na(.) ~ 'oAM',
+                           location == 'SF' & !is.na(.) ~ paste('oAM', ., sep = '; '),
+                           TRUE ~ .))) %>%
+  mutate(BP_flag = case_when(location == 'SF' ~ 'l',
+                             TRUE ~ ''))
+
+
+## Print 2-week plots to check all work ----
+weather_L1_vert <- weather_L1 %>%
+  select(location, datetime_noDST, source, all_of(dataforviz)) %>% #select only the data for visualization
+  mutate(winddir = case_when(winddir == 'N' ~ '0',
+                             winddir == 'NNE' ~ '1',
+                             winddir == 'NE' ~ '2',
+                             winddir == 'ENE' ~'3',
+                             winddir == 'E' ~ '4',
+                             winddir == 'ESE' ~ '5',
+                             winddir == 'SE' ~ '6',
+                             winddir == 'SSE' ~ '7',
+                             winddir == 'S' ~ '8',
+                             winddir == 'SSW' ~ '9',
+                             winddir == 'SW' ~ '10',
+                             winddir == 'WSW' ~ '11',
+                             winddir == 'W' ~ '12',
+                             winddir == 'WNW' ~ '13',
+                             winddir == 'NW' ~ '14',
+                             winddir == 'NNW' ~ '15')) %>%
+  gather(variable, value, -location, - datetime_noDST, -source) %>%
+  mutate(value = as.numeric(value))
+
+#plot all L0.5 plots and save to appropriate figdir
+for (i in 1:(nrow(biweekly_2020)-1)){
+  gg_met <- ggplot(subset(weather_L1_vert, subset=(datetime_noDST>biweekly_2020$date[i] &
+                                                     datetime_noDST < biweekly_2020$date[i+1])), aes(x=datetime_noDST, y=value)) +
+    geom_point() +
+    facet_grid(variable ~ location, scales = 'free_y') +
+    labs(title=paste0('Clean Met Data ', biweekly_2020$date[i], ' through ', biweekly_2020$date[i+1]),
+         x='date',
+         y=NULL) +
+    theme_bw() +
+    theme(plot.title = element_text(hjust = 0.5)) +
+    scale_x_datetime(minor_breaks = '1 day') +
+    scale_color_colorblind()
+  print(gg_met)
+  ggsave(paste0(metfigdirL1, '2wk_L1_plots_', biweekly_2020$date[i], '-', biweekly_2020$date[i+1], '.jpeg'),
+         width = 10, height = 8, units = 'in')
+}
+
+#plot all together in paneled, too
+for (i in 1:(nrow(biweekly_2020)-1)){
+  gg_met <- ggplot(subset(weather_L1_vert, subset=(datetime_noDST>biweekly_2020$date[i] &
+                                                     datetime_noDST < biweekly_2020$date[i+1])), aes(x=datetime_noDST, y=value)) +
+    geom_point(aes(color = location)) +
+    facet_grid(variable ~ ., scales = 'free_y') +
+    labs(title=paste0('Clean Met Data ', biweekly_2020$date[i], ' through ', biweekly_2020$date[i+1]),
+         x='date',
+         y=NULL) +
+    theme_bw() +
+    theme(plot.title = element_text(hjust = 0.5)) +
+    scale_x_datetime(minor_breaks = '1 day') +
+    scale_color_colorblind()
+  print(gg_met)
+  ggsave(paste0(metfigdirL1, '2wk_L1_plots_nofacet_', biweekly_2020$date[i], '-', biweekly_2020$date[i+1], '.jpeg'),
+         width = 6, height = 8, units = 'in')
+}
+
+# Export QAQC Data
+
+weather_L1 %>%
+  mutate(instrument_datetime = as.character(instrument_datetime),
+         datetime_noDST = as.character(datetime_noDST)) %>%
+  write_csv(paste0(datadir, 'L1 data/davis_weather_data_', start_date, '_', end_date, '_L1_v', L1_versiondate, '.csv'))
