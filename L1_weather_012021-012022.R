@@ -20,6 +20,14 @@ datadir <- 'C:/Users/steeleb/Dropbox/Lake Sunapee/monitoring/weather/LSPA_Davis_
 metfigdirL1 <- 'C:/Users/steeleb/Dropbox/Lake Sunapee/monitoring/weather/LSPA_Davis_stations/graphs/L1/2021/'
 metfigdirL05 <- 'C:/Users/steeleb/Dropbox/Lake Sunapee/monitoring/weather/LSPA_Davis_stations/graphs/L0.5/2021/'
 
+#check to make sure directories exist, if not, make them
+dirstocheck <- c(metfigdirL1, metfigdirL05)
+for (i in 1:length(dirstocheck)){
+  if(!dir.exists(dirstocheck[i])){
+    dir.create(dirstocheck[i])
+  }
+}
+
 dumpdir <- 'C:/Users/steeleb/Dropbox/Lake Sunapee/monitoring/weather/LSPA_Davis_stations/L1 data/'
 
 #create variable lists - these are the non-derived variables. these will tell us whether or not other data is inaccurate.
@@ -42,11 +50,19 @@ L1_versiondate <- Sys.Date()
 #read in raw data
 weather_L0 <- read.csv(paste0(datadir, 'L0 data/davis_weather_data_2019-2022_L0_2022-03-09.csv'))
 
+#set time period of interest:
+start_date = '2021-01-01'
+end_date = '2022-01-01'
+
 #filter for this time period
 weather_L0_2021 <- weather_L0 %>% 
   mutate(datetime_noDST = as.POSIXct(datetime_noDST, tz = 'Etc/GMT+5'),
+         datetime_noDST = force_tz(datetime_noDST, tz = 'Etc/GMT+5'),
          instrument_datetime = as.POSIXct(instrument_datetime, tz = 'America/New_York')) %>% 
-  filter(instrument_datetime >= as.POSIXct('2021-01-01', tz = 'America/New_York'))
+  filter(instrument_datetime >= as.POSIXct(start_date, tz = 'America/New_York') &
+           instrument_datetime < as.POSIXct(end_date, tz= 'America/New_York'))
+head(weather_L0_2021)
+tail(weather_L0_2021)
 
 #create a new dataframe for data cleaning to be stored
 weather_L1 <- weather_L0_2021 
@@ -74,59 +90,35 @@ weather_L0_vert <- weather_L0_2021 %>%
   mutate(value = as.numeric(value))
 
 
-## 2021 data 2-week vis ####
-
-#This script runs iteratively over two-week periods for each variable, plotting the data at all 3 locations for the year of data
-
-#set time period of interest:
-start_date = '2021-01-01'
-end_date = '2022-01-01'
-
 #create a list of 2 weeks during time period of interest
 biweekly_2021 <- seq(as.Date(start_date), as.Date(end_date), '2 weeks')  %>% 
   as.data.frame(.) %>% 
   dplyr::rename(date = '.') %>% 
   slice(1:26) %>% #only grab the 26 weeks
   add_row(date = as.Date(end_date)) #add last date
+biweekly_2021
 
-
-#plot all L0.5 plots and save to appropriate figdir
-for (i in 1:(nrow(biweekly_2021)-1)){
-  gg_met <- ggplot(subset(weather_L0_vert, subset=(datetime_noDST>biweekly_2021$date[i] & 
-                                                     datetime_noDST < biweekly_2021$date[i+1])), aes(x=datetime_noDST, y=value)) + 
-    geom_point() +
-    facet_grid(variable ~ location, scales = 'free_y') +
-    labs(title=paste0('Raw Met Data ', biweekly_2021$date[i], ' through ', biweekly_2021$date[i+1]),
-         x='date',
-         y=NULL) +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5)) +
-    scale_x_datetime(minor_breaks = '1 day') +
-    scale_color_colorblind()
-  print(gg_met)
-  ggsave(paste0(metfigdirL05, '2wk_L0.5_plots_', biweekly_2021$date[i], '-', biweekly_2021$date[i+1], '.jpeg'),
-        width = 10, height = 8, units = 'in')
-}
-
-
-# plot all the pressure data together to confirm time issues at HC
+## find problematic HC timing ---- 
+# plot all the pressure data together to find time issues at HC
 pressureonly <- weather_L0_vert %>% 
   filter(variable == 'pressure_hpa')
-for (x in 1:(nrow(biweekly_2021)-1)){
-  gg_met <- ggplot(subset(pressureonly, subset=(datetime_noDST>biweekly_2021$date[x] & 
-                                                     datetime_noDST < biweekly_2021$date[x+1])), aes(x=datetime_noDST, y=value)) + 
-    geom_point(aes(color = location)) +
-    labs(title=paste0('Raw Pressure Data ', biweekly_2021$date[x], ' through ', biweekly_2021$date[x+1]),
-         x='date',
-         y=NULL) +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5)) +
-    scale_x_datetime(minor_breaks = '1 day') +
-    scale_color_colorblind()
-  print(gg_met)
-  ggsave(paste0(metfigdirL05, '2wk_L0.5_pres_plots_', biweekly_2021$date[x], '-', biweekly_2021$date[x+1], '.jpeg'),
-         width = 10, height =4, units = 'in')
-}
+# for (x in 1:(nrow(biweekly_2021)-1)){
+#   gg_met <- ggplot(subset(pressureonly, subset=(datetime_noDST>biweekly_2021$date[x] & 
+#                                                      datetime_noDST < biweekly_2021$date[x+1])), aes(x=datetime_noDST, y=value)) + 
+#     geom_point(aes(color = location)) +
+#     labs(title=paste0('Raw Pressure Data ', biweekly_2021$date[x], ' through ', biweekly_2021$date[x+1]),
+#          x='date',
+#          y=NULL) +
+#     theme_bw() +
+#     theme(plot.title = element_text(hjust = 0.5)) +
+#     scale_x_datetime(minor_breaks = '1 day') +
+#     scale_color_colorblind()
+#   print(gg_met)
+#   ggsave(paste0(metfigdirL05, '2wk_L0.5_pres_plots_', biweekly_2021$date[x], '-', biweekly_2021$date[x+1], '.jpeg'),
+#          width = 10, height =4, units = 'in')
+# }
+# note, that while coding these, I will often comment out sections that require more time/processing (i.e. the for-loops) to ease
+#processing when I need to rerun any preceeding code. 
 
 ## issue dates ####
 
@@ -200,21 +192,21 @@ weather_L1_vert <- weather_L1 %>%
 #cycle through pressure only data again
 pressureonly <- weather_L1_vert %>% 
   filter(variable == 'pressure_hpa')
-for (x in 1:(nrow(biweekly_2021)-1)){
-  gg_met <- ggplot(subset(pressureonly, subset=(datetime_noDST>biweekly_2021$date[x] & 
-                                                  datetime_noDST < biweekly_2021$date[x+1])), aes(x=datetime_noDST, y=value)) + 
-    geom_point(aes(color = location)) +
-    labs(title=paste0('Raw Pressure Data 1h', biweekly_2021$date[x], ' through ', biweekly_2021$date[x+1]),
-         x='date',
-         y=NULL) +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5)) +
-    scale_x_datetime(minor_breaks = '1 day') +
-    scale_color_colorblind()
-  print(gg_met)
-  ggsave(paste0(metfigdirL05, '2wk_L0.5_1h_pres_plots_', biweekly_2021$date[x], '-', biweekly_2021$date[x+1], '.jpeg'),
-         width = 10, height = 4, units = 'in')
-}
+# for (x in 1:(nrow(biweekly_2021)-1)){
+#   gg_met <- ggplot(subset(pressureonly, subset=(datetime_noDST>biweekly_2021$date[x] & 
+#                                                   datetime_noDST < biweekly_2021$date[x+1])), aes(x=datetime_noDST, y=value)) + 
+#     geom_point(aes(color = location)) +
+#     labs(title=paste0('Raw Pressure Data 1h', biweekly_2021$date[x], ' through ', biweekly_2021$date[x+1]),
+#          x='date',
+#          y=NULL) +
+#     theme_bw() +
+#     theme(plot.title = element_text(hjust = 0.5)) +
+#     scale_x_datetime(minor_breaks = '1 day') +
+#     scale_color_colorblind()
+#   print(gg_met)
+#   ggsave(paste0(metfigdirL05, '2wk_L0.5_1h_pres_plots_', biweekly_2021$date[x], '-', biweekly_2021$date[x+1], '.jpeg'),
+#          width = 10, height = 4, units = 'in')
+# }
 
 #### sept 25/26 ----
 ggplot(subset(pressureonly, subset=(datetime_noDST>as.Date('2021-09-25') & 
@@ -280,21 +272,21 @@ weather_L1_vert <- weather_L1 %>%
 #cycle through pressure only data again
 pressureonly <- weather_L1_vert %>% 
   filter(variable == 'pressure_hpa')
-for (x in 1:(nrow(biweekly_2021)-1)){
-  gg_met <- ggplot(subset(pressureonly, subset=(datetime_noDST>biweekly_2021$date[x] & 
-                                                  datetime_noDST < biweekly_2021$date[x+1])), aes(x=datetime_noDST, y=value)) + 
-    geom_point(aes(color = location)) +
-    labs(title=paste0('Raw Pressure Data 1h, 5h', biweekly_2021$date[x], ' through ', biweekly_2021$date[x+1]),
-         x='date',
-         y=NULL) +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5)) +
-    scale_x_datetime(minor_breaks = '1 day') +
-    scale_color_colorblind()
-  print(gg_met)
-  ggsave(paste0(metfigdirL05, '2wk_L0.5_1h_5h_pres_plots_', biweekly_2021$date[x], '-', biweekly_2021$date[x+1], '.jpeg'),
-         width = 10, height = 4, units = 'in')
-}
+# for (x in 1:(nrow(biweekly_2021)-1)){
+#   gg_met <- ggplot(subset(pressureonly, subset=(datetime_noDST>biweekly_2021$date[x] & 
+#                                                   datetime_noDST < biweekly_2021$date[x+1])), aes(x=datetime_noDST, y=value)) + 
+#     geom_point(aes(color = location)) +
+#     labs(title=paste0('Raw Pressure Data 1h, 5h', biweekly_2021$date[x], ' through ', biweekly_2021$date[x+1]),
+#          x='date',
+#          y=NULL) +
+#     theme_bw() +
+#     theme(plot.title = element_text(hjust = 0.5)) +
+#     scale_x_datetime(minor_breaks = '1 day') +
+#     scale_color_colorblind()
+#   print(gg_met)
+#   ggsave(paste0(metfigdirL05, '2wk_L0.5_1h_5h_pres_plots_', biweekly_2021$date[x], '-', biweekly_2021$date[x+1], '.jpeg'),
+#          width = 10, height = 4, units = 'in')
+# }
 
 #### dec 11/12 ----
 ggplot(subset(pressureonly, subset=(datetime_noDST>as.Date('2021-12-11') & 
@@ -360,21 +352,61 @@ weather_L1_vert <- weather_L1 %>%
 #cycle through pressure only data again
 pressureonly <- weather_L1_vert %>% 
   filter(variable == 'pressure_hpa')
-for (x in 1:(nrow(biweekly_2021)-1)){
-  gg_met <- ggplot(subset(pressureonly, subset=(datetime_noDST>biweekly_2021$date[x] & 
-                                                  datetime_noDST < biweekly_2021$date[x+1])), aes(x=datetime_noDST, y=value)) + 
-    geom_point(aes(color = location)) +
-    labs(title=paste0('Raw Pressure Data 1h, 5h, 11h ', biweekly_2021$date[x], ' through ', biweekly_2021$date[x+1]),
-         x='date',
-         y=NULL) +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5)) +
-    scale_x_datetime(minor_breaks = '1 day') +
-    scale_color_colorblind()
-  print(gg_met)
-  ggsave(paste0(metfigdirL05, '2wk_L0.5_1h_5h_11h_pres_plots_', biweekly_2021$date[x], '-', biweekly_2021$date[x+1], '.jpeg'),
-         width = 10, height = 4, units = 'in')
-}
+# for (x in 1:(nrow(biweekly_2021)-1)){
+#   gg_met <- ggplot(subset(pressureonly, subset=(datetime_noDST>biweekly_2021$date[x] & 
+#                                                   datetime_noDST < biweekly_2021$date[x+1])), aes(x=datetime_noDST, y=value)) + 
+#     geom_point(aes(color = location)) +
+#     labs(title=paste0('Raw Pressure Data 1h, 5h, 11h ', biweekly_2021$date[x], ' through ', biweekly_2021$date[x+1]),
+#          x='date',
+#          y=NULL) +
+#     theme_bw() +
+#     theme(plot.title = element_text(hjust = 0.5)) +
+#     scale_x_datetime(minor_breaks = '1 day') +
+#     scale_color_colorblind()
+#   print(gg_met)
+#   ggsave(paste0(metfigdirL05, '2wk_L0.5_1h_5h_11h_pres_plots_', biweekly_2021$date[x], '-', biweekly_2021$date[x+1], '.jpeg'),
+#          width = 10, height = 4, units = 'in')
+# }
+
+## Clean data ----
+
+### 2-week vis ----
+
+# #plot all L0.5 plots and save to appropriate figdir
+# for (i in 1:(nrow(biweekly_2021)-1)){
+#   gg_met <- ggplot(subset(weather_L1_vert, subset=(datetime_noDST>biweekly_2021$date[i] & 
+#                                                      datetime_noDST < biweekly_2021$date[i+1])), aes(x=datetime_noDST, y=value)) + 
+#     geom_point() +
+#     facet_grid(variable ~ location, scales = 'free_y') +
+#     labs(title=paste0('Raw Met Data ', biweekly_2021$date[i], ' through ', biweekly_2021$date[i+1]),
+#          x='date',
+#          y=NULL) +
+#     theme_bw() +
+#     theme(plot.title = element_text(hjust = 0.5)) +
+#     scale_x_datetime(minor_breaks = '1 day') +
+#     scale_color_colorblind()
+#   print(gg_met)
+#   ggsave(paste0(metfigdirL05, '2wk_L0.5_plots_', biweekly_2021$date[i], '-', biweekly_2021$date[i+1], '.jpeg'),
+#          width = 10, height = 8, units = 'in')
+# }
+# 
+# #plot all together in paneled, too
+# for (i in 1:(nrow(biweekly_2021)-1)){
+#   gg_met <- ggplot(subset(weather_L1_vert, subset=(datetime_noDST>biweekly_2021$date[i] &
+#                                                      datetime_noDST < biweekly_2021$date[i+1])), aes(x=datetime_noDST, y=value)) +
+#     geom_point(aes(color = location)) +
+#     facet_grid(variable ~ ., scales = 'free_y') +
+#     labs(title=paste0('Raw Met Data ', biweekly_2021$date[i], ' through ', biweekly_2021$date[i+1]),
+#          x='date',
+#          y=NULL) +
+#     theme_bw() +
+#     theme(plot.title = element_text(hjust = 0.5)) +
+#     scale_x_datetime(minor_breaks = '1 day') +
+#     scale_color_colorblind()
+#   print(gg_met)
+#   ggsave(paste0(metfigdirL05, '2wk_L05_plots_nofacet_', biweekly_2021$date[i], '-', biweekly_2021$date[i+1], '.jpeg'),
+#          width = 6, height = 8, units = 'in')
+# }
 
 ### location-specific issues ----
 
@@ -465,11 +497,11 @@ weather_L1 <- weather_L1 %>%
                              TRUE ~ '')) 
 
 
-## 2021 L1 2-week vis check ----
-weather_L1_vert <- weather_L1 %>% 
+## Print 2-week plots to check all work ----
+weather_L1_vert <- weather_L1 %>%
   select(location, datetime_noDST, source, all_of(dataforviz)) %>% #select only the data for visualization
   mutate(winddir = case_when(winddir == 'N' ~ '0',
-                             winddir == 'NNE' ~ '1', 
+                             winddir == 'NNE' ~ '1',
                              winddir == 'NE' ~ '2',
                              winddir == 'ENE' ~'3',
                              winddir == 'E' ~ '4',
@@ -478,19 +510,19 @@ weather_L1_vert <- weather_L1 %>%
                              winddir == 'SSE' ~ '7',
                              winddir == 'S' ~ '8',
                              winddir == 'SSW' ~ '9',
-                             winddir == 'SW' ~ '10', 
-                             winddir == 'WSW' ~ '11', 
+                             winddir == 'SW' ~ '10',
+                             winddir == 'WSW' ~ '11',
                              winddir == 'W' ~ '12',
                              winddir == 'WNW' ~ '13',
                              winddir == 'NW' ~ '14',
-                             winddir == 'NNW' ~ '15')) %>% 
-  gather(variable, value, -location, - datetime_noDST, -source) %>% 
+                             winddir == 'NNW' ~ '15')) %>%
+  gather(variable, value, -location, - datetime_noDST, -source) %>%
   mutate(value = as.numeric(value))
 
-#plot all L1 plots and save to appropriate figdir
+#plot all L0.5 plots and save to appropriate figdir
 for (i in 1:(nrow(biweekly_2021)-1)){
-  gg_met <- ggplot(subset(weather_L1_vert, subset=(datetime_noDST>biweekly_2021$date[i] & 
-                                                     datetime_noDST < biweekly_2021$date[i+1])), aes(x=datetime_noDST, y=value)) + 
+  gg_met <- ggplot(subset(weather_L1_vert, subset=(datetime_noDST>biweekly_2021$date[i] &
+                                                     datetime_noDST < biweekly_2021$date[i+1])), aes(x=datetime_noDST, y=value)) +
     geom_point() +
     facet_grid(variable ~ location, scales = 'free_y') +
     labs(title=paste0('Clean Met Data ', biweekly_2021$date[i], ' through ', biweekly_2021$date[i+1]),
@@ -505,6 +537,27 @@ for (i in 1:(nrow(biweekly_2021)-1)){
          width = 10, height = 8, units = 'in')
 }
 
+#plot all together in paneled, too
+for (i in 1:(nrow(biweekly_2021)-1)){
+  gg_met <- ggplot(subset(weather_L1_vert, subset=(datetime_noDST>biweekly_2021$date[i] &
+                                                     datetime_noDST < biweekly_2021$date[i+1])), aes(x=datetime_noDST, y=value)) +
+    geom_point(aes(color = location)) +
+    facet_grid(variable ~ ., scales = 'free_y') +
+    labs(title=paste0('Clean Met Data ', biweekly_2021$date[i], ' through ', biweekly_2021$date[i+1]),
+         x='date',
+         y=NULL) +
+    theme_bw() +
+    theme(plot.title = element_text(hjust = 0.5)) +
+    scale_x_datetime(minor_breaks = '1 day') +
+    scale_color_colorblind()
+  print(gg_met)
+  ggsave(paste0(metfigdirL1, '2wk_L1_plots_nofacet_', biweekly_2021$date[i], '-', biweekly_2021$date[i+1], '.jpeg'),
+         width = 6, height = 8, units = 'in')
+}
 
-## join with previous data and export ----
+## Export QAQC Data ----
 
+weather_L1 %>%
+  mutate(instrument_datetime = as.character(instrument_datetime),
+         datetime_noDST = as.character(datetime_noDST)) %>%
+  write_csv(paste0(datadir, 'L1 data/davis_weather_data_', start_date, '_', end_date, '_L1_v', L1_versiondate, '.csv'))
