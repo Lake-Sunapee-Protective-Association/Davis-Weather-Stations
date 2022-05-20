@@ -106,6 +106,7 @@ attr_GM <- attr_GM %>%
                                          attributeName == 'THSWIndex_degC' ~ 'perceived temperature as a result of the combination effect of temperature, humidity, solar radiation, and wind speed', 
                                          attributeName == 'precipitation_mm' ~ 'total precipitation over previous 30 minutes',
                                          attributeName == 'rainfallRate_mmphr' ~ 'rate of precipitation based on precipitation_mm variable',
+                                         attributeName == 'rain_flag' ~ 'flag for variable precipitation_mm and rainfallRate_mmphr',
                                          attributeName == 'radiationTotalIncoming_Wpm2' ~ 'instantaeous total amount of incoming radiation from all frequencies',
                                          attributeName == 'radiationTotalIncomingRate_Ly' ~ 'instantaneous rate of incoming radiation from all frequencies',
                                          attributeName == 'radiationTotalIncoming_Wpm2_maximum' ~ 'maximum total amount of incoming radiation from all frequencies in previous 30 minutes',
@@ -126,7 +127,7 @@ attr_GM <- attr_GM %>%
          missingValueCode = 'NA',
          missingValueCodeExplanation = case_when(grepl('NA', missingValueCode, ignore.case = T) ~ 'not available',
                                                  TRUE ~ missingValueCodeExplanation),
-         class = case_when(grepl('flag', attributeName) ~ 'categorical', #generally these are cat values
+         class = case_when(attributeName == 'rain_flag' ~ 'categorical',
                            attributeName == 'time_flag' ~ 'character', #no flags
                            attributeName == 'BP_flag' ~ 'character', #no flags
                            attributeName == 'SR_flag' ~ 'character', #no flags
@@ -205,6 +206,7 @@ attr_HC <- attr_HC %>%
                                          attributeName == 'THSWIndex_degC' ~ 'perceived temperature as a result of the combination effect of temperature, humidity, solar radiation, and wind speed', 
                                          attributeName == 'precipitation_mm' ~ 'total precipitation over previous 30 minutes',
                                          attributeName == 'rainfallRate_mmphr' ~ 'rate of precipitation based on precipitation_mm variable',
+                                         attributeName == 'rain_flag' ~ 'flag for variable precipitation_mm and rainfallRate_mmphr',
                                          attributeName == 'radiationTotalIncoming_Wpm2' ~ 'instantaeous total amount of incoming radiation from all frequencies',
                                          attributeName == 'radiationTotalIncomingRate_Ly' ~ 'instantaneous rate of incoming radiation from all frequencies',
                                          attributeName == 'radiationTotalIncoming_Wpm2_maximum' ~ 'maximum total amount of incoming radiation from all frequencies in previous 30 minutes',
@@ -221,11 +223,12 @@ attr_HC <- attr_HC %>%
                                          TRUE ~ attributeDefinition),
          
          dateTimeFormatString = case_when(attributeName == 'datetime_noDST' ~ 'YYYY-MM-DD hh:mm',
-                                          attributeName == 'instrument_datetime' ~ 'YYYY-MM-DD hh:mm'),
+                                          attributeName == 'instrument_datetime' ~ 'YYYY-MM-DD hh:mm',
+                                          TRUE ~ ''),
          missingValueCode = 'NA',
          missingValueCodeExplanation = case_when(grepl('NA', missingValueCode, ignore.case = T) ~ 'not available',
                                                  TRUE ~ missingValueCodeExplanation),
-         class = case_when(grepl('flag', attributeName) ~ 'categorical', #generally these are cat vars
+         class = case_when(attributeName == 'time_flag' ~ 'character', #no flags
                            attributeName == 'BP_flag' ~ 'character', #no flags
                            attributeName == 'SR_flag' ~ 'character', #no flags
                            attributeName == 'UV_flag' ~ 'character', #no flags
@@ -303,6 +306,7 @@ attr_SF <- attr_SF %>%
                                          attributeName == 'THSWIndex_degC' ~ 'perceived temperature as a result of the combination effect of temperature, humidity, solar radiation, and wind speed', 
                                          attributeName == 'precipitation_mm' ~ 'total precipitation over previous 30 minutes',
                                          attributeName == 'rainfallRate_mmphr' ~ 'rate of precipitation based on precipitation_mm variable',
+                                         attributeName == 'rain_flag' ~ 'flag for variable precipitation_mm and rainfallRate_mmphr',
                                          attributeName == 'radiationTotalIncoming_Wpm2' ~ 'instantaeous total amount of incoming radiation from all frequencies',
                                          attributeName == 'radiationTotalIncomingRate_Ly' ~ 'instantaneous rate of incoming radiation from all frequencies',
                                          attributeName == 'radiationTotalIncoming_Wpm2_maximum' ~ 'maximum total amount of incoming radiation from all frequencies in previous 30 minutes',
@@ -323,8 +327,7 @@ attr_SF <- attr_SF %>%
          missingValueCode = 'NA',
          missingValueCodeExplanation = case_when(grepl('NA', missingValueCode, ignore.case = T) ~ 'not available',
                                                  TRUE ~ missingValueCodeExplanation),
-         class = case_when(grepl('flag', attributeName) ~ 'categorical', #generally these are cat vars
-                           attributeName == 'time_flag' ~ 'character', #no flags
+         class = case_when(attributeName == 'time_flag' ~ 'character', #no flags
                            attributeName == 'rain_flag' ~ 'character', #no flags
                            attributeName == 'heatingDegreeDays' ~ 'numeric',
                            attributeName == 'coolingDegreeDays' ~ 'numeric',
@@ -560,7 +563,7 @@ unique(catvars_data$code)
 
 ```{r}
 catvars_data <- catvars_data %>% 
-  mutate(definition = case_when(code == 'pine needle removed from rain gauge; data prior may not be precise due to clogged gauge' ~ 'pine needle removed from rain gauge; data prior may not be precise due to clogged gauge',
+  mutate(definition = case_when(code == 'pine needle removed from rain gauge; data prior may not be precise due to clogged gauge' ~ 'use with caution; pine needle removed from rain gauge; data prior may not be precise due to clogged gauge',
                                 code == 'i' ~ 'data reporting intermittently',
                                 code == 's' ~ 'data are suspect, use with cautuion',
                                 code == 't' ~ 'time is imprecise, may be off by up to 4 hours',
