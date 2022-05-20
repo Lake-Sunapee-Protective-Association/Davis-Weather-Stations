@@ -126,7 +126,11 @@ attr_GM <- attr_GM %>%
          missingValueCode = 'NA',
          missingValueCodeExplanation = case_when(grepl('NA', missingValueCode, ignore.case = T) ~ 'not available',
                                                  TRUE ~ missingValueCodeExplanation),
-         class = case_when(grepl('flag', attributeName) ~ 'categorical',
+         class = case_when(grepl('flag', attributeName) ~ 'categorical', #generally these are cat values
+                           attributeName == 'time_flag' ~ 'character', #no flags
+                           attributeName == 'BP_flag' ~ 'character', #no flags
+                           attributeName == 'SR_flag' ~ 'character', #no flags
+                           attributeName == 'UV_flag' ~ 'character', #no flags
                            attributeName == 'heatingDegreeDays' ~ 'numeric',
                            attributeName == 'coolingDegreeDays' ~ 'numeric',
                            attributeName == 'source' ~ 'character',
@@ -221,7 +225,10 @@ attr_HC <- attr_HC %>%
          missingValueCode = 'NA',
          missingValueCodeExplanation = case_when(grepl('NA', missingValueCode, ignore.case = T) ~ 'not available',
                                                  TRUE ~ missingValueCodeExplanation),
-         class = case_when(grepl('flag', attributeName) ~ 'categorical',
+         class = case_when(grepl('flag', attributeName) ~ 'categorical', #generally these are cat vars
+                           attributeName == 'BP_flag' ~ 'character', #no flags
+                           attributeName == 'SR_flag' ~ 'character', #no flags
+                           attributeName == 'UV_flag' ~ 'character', #no flags
                            attributeName == 'heatingDegreeDays' ~ 'numeric',
                            attributeName == 'coolingDegreeDays' ~ 'numeric',
                            attributeName == 'source' ~ 'character',
@@ -316,7 +323,9 @@ attr_SF <- attr_SF %>%
          missingValueCode = 'NA',
          missingValueCodeExplanation = case_when(grepl('NA', missingValueCode, ignore.case = T) ~ 'not available',
                                                  TRUE ~ missingValueCodeExplanation),
-         class = case_when(grepl('flag', attributeName) ~ 'categorical',
+         class = case_when(grepl('flag', attributeName) ~ 'categorical', #generally these are cat vars
+                           attributeName == 'time_flag' ~ 'character', #no flags
+                           attributeName == 'rain_flag' ~ 'character', #no flags
                            attributeName == 'heatingDegreeDays' ~ 'numeric',
                            attributeName == 'coolingDegreeDays' ~ 'numeric',
                            attributeName == 'source' ~ 'character',
