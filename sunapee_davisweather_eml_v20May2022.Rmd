@@ -122,8 +122,8 @@ attr_GM <- attr_GM %>%
                                          attributeName == 'source' ~ 'file name of original data',
                                          TRUE ~ attributeDefinition),
          
-         dateTimeFormatString = case_when(attributeName == 'datetime_noDST' ~ 'YYYY-MM-DD hh:mm',
-                                          attributeName == 'instrument_datetime' ~ 'YYYY-MM-DD hh:mm'),
+         dateTimeFormatString = case_when(attributeName == 'datetime_noDST' ~ 'YYYY-MM-DD HH:MM:SS',
+                                          attributeName == 'instrument_datetime' ~ 'YYYY-MM-DD HH:MM:SS'),
          missingValueCode = 'NA',
          missingValueCodeExplanation = case_when(grepl('NA', missingValueCode, ignore.case = T) ~ 'not available',
                                                  TRUE ~ missingValueCodeExplanation),
@@ -222,8 +222,8 @@ attr_HC <- attr_HC %>%
                                          attributeName == 'source' ~ 'file name of original data',
                                          TRUE ~ attributeDefinition),
          
-         dateTimeFormatString = case_when(attributeName == 'datetime_noDST' ~ 'YYYY-MM-DD hh:mm',
-                                          attributeName == 'instrument_datetime' ~ 'YYYY-MM-DD hh:mm',
+         dateTimeFormatString = case_when(attributeName == 'datetime_noDST' ~ 'YYYY-MM-DD HH:MM:SS',
+                                          attributeName == 'instrument_datetime' ~ 'YYYY-MM-DD HH:MM:SS',
                                           TRUE ~ ''),
          missingValueCode = 'NA',
          missingValueCodeExplanation = case_when(grepl('NA', missingValueCode, ignore.case = T) ~ 'not available',
@@ -322,8 +322,8 @@ attr_SF <- attr_SF %>%
                                          attributeName == 'source' ~ 'file name of original data',
                                          TRUE ~ attributeDefinition),
          
-         dateTimeFormatString = case_when(attributeName == 'datetime_noDST' ~ 'YYYY-MM-DD hh:mm',
-                                          attributeName == 'instrument_datetime' ~ 'YYYY-MM-DD hh:mm'),
+         dateTimeFormatString = case_when(attributeName == 'datetime_noDST' ~ 'YYYY-MM-DD HH:MM:SS',
+                                          attributeName == 'instrument_datetime' ~ 'YYYY-MM-DD HH:MM:SS'),
          missingValueCode = 'NA',
          missingValueCodeExplanation = case_when(grepl('NA', missingValueCode, ignore.case = T) ~ 'not available',
                                                  TRUE ~ missingValueCodeExplanation),
@@ -381,7 +381,7 @@ attr_loc <- attr_loc %>%
                                          attributeName == 'DateDeployed' ~ 'datetime of deployment',
                                          TRUE ~ attributeDefinition),
          
-         dateTimeFormatString = case_when(attributeName == 'DateDeployed' ~ 'YYYY-MM-DD hh:mm'),
+         dateTimeFormatString = case_when(attributeName == 'DateDeployed' ~ 'YYYY-MM-DD HH:MM:SS'),
          missingValueCode = case_when(attributeName == 'WaterDepthMeters' ~ 'NA',
                                       TRUE ~ NA_character_),
          missingValueCodeExplanation = case_when(grepl('NA', missingValueCode, ignore.case = T) ~ 'not applicable',
