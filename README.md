@@ -4,7 +4,7 @@ This repo of code is used to collate and QAQC Davis Weather Station Data at Lake
 
 All data are downloaded in 3-month chunks and processed/cleaned at least 1x per year. Data are prepped for submission once per year. 
 
-All data created with these scritps are archived at EDI. Please review the metadata at EDI for data caveats, notes, and code definitions.
+All data created with these scritps are archived at EDI (https://portal.edirepository.org/nis/mapbrowse?packageid=edi.736.2). Please review the metadata at EDI for data caveats, notes, and code definitions. 
 
 All questions about these scripts and data should be directed to B Steele (steeleb@caryinstitute.org) and Kathie Weathers (weathersk@caryinstitute.org).
 
@@ -25,4 +25,5 @@ The order of scripts, as presented here, is the order in which they are run. Not
 ## prep for push to EDI
 
  * weather_prepforsubmission.Rmd - this script re-orders columns and applies ODM2 controlled vocabulary
+ * sunapee_davisweather_eml_v20May2022.Rmd - this script creates the EML metadata for upload to EDI
 
