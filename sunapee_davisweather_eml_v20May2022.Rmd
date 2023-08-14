@@ -1,0 +1,1112 @@
+---
+title: "Sunapee Davis Station EDI"
+author: "B. Steele"
+date: \today
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(devtools)
+library(EML)
+install_github('EDIorg/EMLassemblyline')
+library(EMLassemblyline)
+
+library(tidyverse)
+library(readxl)
+library(kableExtra)
+
+dir = 'C:/Users/steeleb/Dropbox/EDI_submissions/sunapee_davisweather_2019-2021_vMay2022/'
+
+```
+
+
+## Create core templates
+
+First step is to tell EML Assemblyline where to put the metadata templates, then create the core metadata templates:
+```{r}
+#basic metadata
+template_core_metadata(
+  path = dir,
+  license = "CCBY"
+)
+```
+
+## Table Attributes
+
+Now to create the table attributes files for the data files (.csv's):
+```{r}
+template_table_attributes(
+  path = dir,
+  data.path = paste0(dir, 'data/'), #where the data tables are located
+  data.table = c('davis_weather_data_GeorgesMills_07-2019_01-2022_L1ODM2_v2022-05-20.csv', #what the data tables are called
+                 'davis_weather_data_HerrickCove_07-2019_01-2022_L1ODM2_v2022-05-20.csv',
+                 'davis_weather_data_SouthOfTheFells_07-2019_01-2022_L1ODM2_v2022-05-20.csv',
+                 'weather_station_location.csv')
+)
+
+```
+
+### Edit table attributes
+
+#### QAQC'd Georges Mills data using ODM2 CV
+
+First, read into R, and make sure it looks okay
+```{r}
+attr_GM <- read.table(
+  file = paste0(dir, 'attributes_davis_weather_data_GeorgesMills_07-2019_01-2022_L1ODM2_v2022-05-20.txt'),
+  header = TRUE,
+  sep = '\t',
+  quote = "\"",
+  as.is = TRUE,
+  comment.char = "",
+  fill = T,
+  colClasses = rep("character", 7)
+)
+attr_GM
+```
+
+Now update information in the attribute table:
+```{r}
+attr_GM <- attr_GM %>% 
+  mutate(unit = case_when(grepl('degC', attributeName, ignore.case = T) ~ 'celsius',
+                          grepl('hpa', attributeName, ignore.case = T) ~ 'hectopascal', 
+                          grepl('percent', attributeName, ignore.case = T) ~ 'percent',
+                          grepl('Run_m', attributeName, ignore.case = T) ~ 'meter',
+                          grepl('n_mm', attributeName, ignore.case = T) ~ 'millimeter',
+                          grepl('mps', attributeName, ignore.case = T) ~ 'meterPerSecond',
+                          grepl('mmphr', attributeName, ignore.case = T) ~ 'millimetersPerHour',
+                          grepl('SID', attributeName, ignore.case = T) ~ 'secondaryIntercardinalDirection',
+                          grepl('Wpm2', attributeName, ignore.case = T) ~ 'wattPerMeterSquared',
+                          grepl('Ly', attributeName, ignore.case = T) ~ 'langley',
+                          grepl('MED', attributeName, ignore.case = T) ~ 'minimalErythemaDose',
+                          grepl('days', attributeName, ignore.case = T) ~ 'degreeDays',
+                          grepl('index', attributeName, ignore.case = T) ~ 'dimensionless',
+                          TRUE ~ ''),
+         attributeDefinition = case_when(attributeName == 'datetime_noDST' ~ 'date and time (GMT -4) of buoy record - no daylight savings observed',
+                                         attributeName == 'SiteName' ~ 'abbreviation for site location',
+                                         attributeName == 'time_flag' ~ 'flag for datetime_noDST and instrument_datetime',
+                                         attributeName == 'barometricPressure_hPa' ~ 'pressure within the atmosphere of the Earth',
+                                         attributeName == 'BP_flag' ~ 'flag for variable barometricPressure_hpa',
+                                         attributeName == 'temperature_degC' ~ 'instantaneous air temperature',
+                                         attributeName == 'temperature_degC_maximum' ~ 'maximum air temperature in previous 30 minutes',
+                                         attributeName == 'temperature_degC_minimum' ~ 'minimum air temperature in previous 30 minutes',
+                                         attributeName == 'relativeHumidity_percent' ~ 'instantaneous relative humidity',
+                                         attributeName == 'temperatureDewPoint_degC' ~ 'instantaneous dew point air temperature',
+                                         attributeName == 'temperatureWetBulb_degC' ~ 'instantaneous wet bulb air temperature',
+                                         attributeName == 'windSpeed_mps' ~ 'instantaneous wind speed',
+                                         attributeName == 'windDirection_SID' ~ 'instantaneous wind direction',
+                                         attributeName == 'windRun_m' ~ 'instantaneous length of flow of air past a point',
+                                         attributeName == 'windGustSpeed_mps' ~ 'speed of greatest gust of wind in previous 30 minutes',
+                                         attributeName == 'windGustDirection_SID' ~ 'direction of greatest gust of wind in the previous 30 minutes',
+                                         attributeName == 'windChill_degC' ~ 'perceived temperature as a result of the effect of wind on the temperature',
+                                         attributeName == 'heatIndex_degC' ~ 'perceived temperature as a result of the combination effect of heat and humidity',
+                                         attributeName == 'THWIndex_degC' ~ 'perceived temperature as a result of the combination effect of temperature, humidity, and wind speed' ,
+                                         attributeName == 'THSWIndex_degC' ~ 'perceived temperature as a result of the combination effect of temperature, humidity, solar radiation, and wind speed', 
+                                         attributeName == 'precipitation_mm' ~ 'total precipitation over previous 30 minutes',
+                                         attributeName == 'rainfallRate_mmphr' ~ 'rate of precipitation based on precipitation_mm variable',
+                                         attributeName == 'rain_flag' ~ 'flag for variable precipitation_mm and rainfallRate_mmphr',
+                                         attributeName == 'radiationTotalIncoming_Wpm2' ~ 'instantaeous total amount of incoming radiation from all frequencies',
+                                         attributeName == 'radiationTotalIncomingRate_Ly' ~ 'instantaneous rate of incoming radiation from all frequencies',
+                                         attributeName == 'radiationTotalIncoming_Wpm2_maximum' ~ 'maximum total amount of incoming radiation from all frequencies in previous 30 minutes',
+                                         attributeName == 'evapotranspiration_mm' ~ 'evapotranspiration over the previous 30 minutes',
+                                         attributeName == 'SR_flag' ~ 'flag for all radiation variables',
+                                         attributeName == 'ultravioletRadiationIndex' ~ 'The global solar UV index (UVI) was developed as an easy-to-understand measure of biologically effective UV radiation with a view to promote public awareness of the risks of UV radiation exposure and sun protection. In the initial work done on UVI in Canada, a typical midday summer erythemal irradiance of 250 mW.m-2 was found leading to the (arbitrary) definition of one UV index equal to an erythemally weighted irradiance of 25 mW.m-2. This gives a typical range of UVI 0 to 11+',
+                                         attributeName == 'ultravioletRadiationDose_MED' ~ 'A measure of the ability of ultraviolet radiation, as a function of wavelength, to produce just perceptible erythema in human skin',
+                                         attributeName == 'ultravioletRadiationIndex_maximum' ~ 'maximum ultravioletRadiationIndex over the previous 30 mintues',
+                                         attributeName == 'UV_flag' ~ 'flag for all ultraviolet variables',
+                                         attributeName == 'heatingDegreeDays' ~ 'heating degree days for reported temperature_degC',
+                                         attributeName == 'coolingDegreeDays' ~ 'cooling degree days for reported temperature_degC',
+                                         attributeName == 'instrument_datetime' ~ 'datetime reported by the instrument, this is for tracking purposes, use datetime_noDST instead of this varaible',
+                                         attributeName == 'source' ~ 'file name of original data',
+                                         TRUE ~ attributeDefinition),
+         
+         dateTimeFormatString = case_when(attributeName == 'datetime_noDST' ~ 'YYYY-MM-DD hh:mm:ss',
+                                          attributeName == 'instrument_datetime' ~ 'YYYY-MM-DD hh:mm:ss'),
+         missingValueCode = 'NA',
+         missingValueCodeExplanation = case_when(grepl('NA', missingValueCode, ignore.case = T) ~ 'not available',
+                                                 TRUE ~ missingValueCodeExplanation),
+         class = case_when(attributeName == 'rain_flag' ~ 'categorical',
+                           attributeName == 'time_flag' ~ 'character', #no flags
+                           attributeName == 'BP_flag' ~ 'character', #no flags
+                           attributeName == 'SR_flag' ~ 'character', #no flags
+                           attributeName == 'UV_flag' ~ 'character', #no flags
+                           attributeName == 'heatingDegreeDays' ~ 'numeric',
+                           attributeName == 'coolingDegreeDays' ~ 'numeric',
+                           attributeName == 'source' ~ 'character',
+                           TRUE ~ class))
+attr_GM
+```
+
+Re-write the table with updates:
+```{r}
+write.table(
+  x = attr_GM,
+  file = paste0(dir,'attributes_davis_weather_data_GeorgesMills_07-2019_01-2022_L1ODM2_v2022-05-20.txt'), 
+  sep = '\t',
+  row.names = FALSE,
+  quote = FALSE
+)
+```
+
+#### QAQC'd Herrick Cove data using ODM2 CV
+
+First, read into R, and make sure it looks okay
+```{r}
+attr_HC <- read.table(
+  file = paste0(dir, 'attributes_davis_weather_data_HerrickCove_07-2019_01-2022_L1ODM2_v2022-05-20.txt'),
+  header = TRUE,
+  sep = '\t',
+  quote = "\"",
+  as.is = TRUE,
+  comment.char = "",
+  fill = T,
+  colClasses = rep("character", 7)
+)
+attr_HC
+```
+
+Now update information in the attribute table:
+```{r}
+attr_HC <- attr_HC %>% 
+  mutate(unit = case_when(grepl('degC', attributeName, ignore.case = T) ~ 'celsius',
+                          grepl('hpa', attributeName, ignore.case = T) ~ 'hectopascal', 
+                          grepl('percent', attributeName, ignore.case = T) ~ 'percent',
+                          grepl('Run_m', attributeName, ignore.case = T) ~ 'meter',
+                          grepl('n_mm', attributeName, ignore.case = T) ~ 'millimeter',
+                          grepl('mps', attributeName, ignore.case = T) ~ 'meterPerSecond',
+                          grepl('mmphr', attributeName, ignore.case = T) ~ 'millimetersPerHour',
+                          grepl('SID', attributeName, ignore.case = T) ~ 'secondaryIntercardinalDirection',
+                          grepl('Wpm2', attributeName, ignore.case = T) ~ 'wattPerMeterSquared',
+                          grepl('Ly', attributeName, ignore.case = T) ~ 'langley',
+                          grepl('MED', attributeName, ignore.case = T) ~ 'minimalErythemaDose',
+                          grepl('days', attributeName, ignore.case = T) ~ 'degreeDays',
+                          grepl('index', attributeName, ignore.case = T) ~ 'dimensionless',
+                          TRUE ~ ''),
+         attributeDefinition = case_when(attributeName == 'datetime_noDST' ~ 'date and time (GMT -4) of buoy record - no daylight savings observed',
+                                         attributeName == 'SiteName' ~ 'abbreviation for site location',
+                                         attributeName == 'time_flag' ~ 'flag for datetime_noDST and instrument_datetime',
+                                         attributeName == 'barometricPressure_hPa' ~ 'pressure within the atmosphere of the Earth',
+                                         attributeName == 'BP_flag' ~ 'flag for variable barometricPressure_hpa',
+                                         attributeName == 'temperature_degC' ~ 'instantaneous air temperature',
+                                         attributeName == 'temperature_degC_maximum' ~ 'maximum air temperature in previous 30 minutes',
+                                         attributeName == 'temperature_degC_minimum' ~ 'minimum air temperature in previous 30 minutes',
+                                         attributeName == 'relativeHumidity_percent' ~ 'instantaneous relative humidity',
+                                         attributeName == 'temperatureDewPoint_degC' ~ 'instantaneous dew point air temperature',
+                                         attributeName == 'temperatureWetBulb_degC' ~ 'instantaneous wet bulb air temperature',
+                                         attributeName == 'windSpeed_mps' ~ 'instantaneous wind speed',
+                                         attributeName == 'windDirection_SID' ~ 'instantaneous wind direction',
+                                         attributeName == 'windRun_m' ~ 'instantaneous length of flow of air past a point',
+                                         attributeName == 'windGustSpeed_mps' ~ 'speed of greatest gust of wind in previous 30 minutes',
+                                         attributeName == 'windGustDirection_SID' ~ 'direction of greatest gust of wind in the previous 30 minutes',
+                                         attributeName == 'windChill_degC' ~ 'perceived temperature as a result of the effect of wind on the temperature',
+                                         attributeName == 'heatIndex_degC' ~ 'perceived temperature as a result of the combination effect of heat and humidity',
+                                         attributeName == 'THWIndex_degC' ~ 'perceived temperature as a result of the combination effect of temperature, humidity, and wind speed' ,
+                                         attributeName == 'THSWIndex_degC' ~ 'perceived temperature as a result of the combination effect of temperature, humidity, solar radiation, and wind speed', 
+                                         attributeName == 'precipitation_mm' ~ 'total precipitation over previous 30 minutes',
+                                         attributeName == 'rainfallRate_mmphr' ~ 'rate of precipitation based on precipitation_mm variable',
+                                         attributeName == 'rain_flag' ~ 'flag for variable precipitation_mm and rainfallRate_mmphr',
+                                         attributeName == 'radiationTotalIncoming_Wpm2' ~ 'instantaeous total amount of incoming radiation from all frequencies',
+                                         attributeName == 'radiationTotalIncomingRate_Ly' ~ 'instantaneous rate of incoming radiation from all frequencies',
+                                         attributeName == 'radiationTotalIncoming_Wpm2_maximum' ~ 'maximum total amount of incoming radiation from all frequencies in previous 30 minutes',
+                                         attributeName == 'evapotranspiration_mm' ~ 'evapotranspiration over the previous 30 minutes',
+                                         attributeName == 'SR_flag' ~ 'flag for all radiation variables',
+                                         attributeName == 'ultravioletRadiationIndex' ~ 'The global solar UV index (UVI) was developed as an easy-to-understand measure of biologically effective UV radiation with a view to promote public awareness of the risks of UV radiation exposure and sun protection. In the initial work done on UVI in Canada, a typical midday summer erythemal irradiance of 250 mW.m-2 was found leading to the (arbitrary) definition of one UV index equal to an erythemally weighted irradiance of 25 mW.m-2. This gives a typical range of UVI 0 to 11+',
+                                         attributeName == 'ultravioletRadiationDose_MED' ~ 'A measure of the ability of ultraviolet radiation, as a function of wavelength, to produce just perceptible erythema in human skin',
+                                         attributeName == 'ultravioletRadiationIndex_maximum' ~ 'maximum ultravioletRadiationIndex over the previous 30 mintues',
+                                         attributeName == 'UV_flag' ~ 'flag for all ultraviolet variables',
+                                         attributeName == 'heatingDegreeDays' ~ 'heating degree days for reported temperature_degC',
+                                         attributeName == 'coolingDegreeDays' ~ 'cooling degree days for reported temperature_degC',
+                                         attributeName == 'instrument_datetime' ~ 'datetime reported by the instrument, this is for tracking purposes, use datetime_noDST instead of this varaible',
+                                         attributeName == 'source' ~ 'file name of original data',
+                                         TRUE ~ attributeDefinition),
+         
+         dateTimeFormatString = case_when(attributeName == 'datetime_noDST' ~ 'YYYY-MM-DD hh:mm:ss',
+                                          attributeName == 'instrument_datetime' ~ 'YYYY-MM-DD hh:mm:ss',
+                                          TRUE ~ ''),
+         missingValueCode = 'NA',
+         missingValueCodeExplanation = case_when(grepl('NA', missingValueCode, ignore.case = T) ~ 'not available',
+                                                 TRUE ~ missingValueCodeExplanation),
+         class = case_when(attributeName == 'time_flag' ~ 'character', #no flags
+                           attributeName == 'BP_flag' ~ 'character', #no flags
+                           attributeName == 'SR_flag' ~ 'character', #no flags
+                           attributeName == 'UV_flag' ~ 'character', #no flags
+                           attributeName == 'heatingDegreeDays' ~ 'numeric',
+                           attributeName == 'coolingDegreeDays' ~ 'numeric',
+                           attributeName == 'source' ~ 'character',
+                           TRUE ~ class))
+attr_HC
+```
+
+Re-write the table with updates:
+```{r}
+write.table(
+  x = attr_HC,
+  file = paste0(dir,'attributes_davis_weather_data_HerrickCove_07-2019_01-2022_L1ODM2_v2022-05-20.txt'), 
+  sep = '\t',
+  row.names = FALSE,
+  quote = FALSE
+)
+```
+
+#### QAQC'd Herrick Cove data using ODM2 CV
+
+First, read into R, and make sure it looks okay
+```{r}
+attr_SF <- read.table(
+  file = paste0(dir, 'attributes_davis_weather_data_SouthOfTheFells_07-2019_01-2022_L1ODM2_v2022-05-20.txt'),
+  header = TRUE,
+  sep = '\t',
+  quote = "\"",
+  as.is = TRUE,
+  comment.char = "",
+  fill = T,
+  colClasses = rep("character", 7)
+)
+attr_SF
+```
+
+Now update information in the attribute table:
+```{r}
+attr_SF <- attr_SF %>% 
+  mutate(unit = case_when(grepl('degC', attributeName, ignore.case = T) ~ 'celsius',
+                          grepl('hpa', attributeName, ignore.case = T) ~ 'hectopascal', 
+                          grepl('percent', attributeName, ignore.case = T) ~ 'percent',
+                          grepl('Run_m', attributeName, ignore.case = T) ~ 'meter',
+                          grepl('n_mm', attributeName, ignore.case = T) ~ 'millimeter',
+                          grepl('mps', attributeName, ignore.case = T) ~ 'meterPerSecond',
+                          grepl('mmphr', attributeName, ignore.case = T) ~ 'millimetersPerHour',
+                          grepl('SID', attributeName, ignore.case = T) ~ 'secondaryIntercardinalDirection',
+                          grepl('Wpm2', attributeName, ignore.case = T) ~ 'wattPerMeterSquared',
+                          grepl('Ly', attributeName, ignore.case = T) ~ 'langley',
+                          grepl('MED', attributeName, ignore.case = T) ~ 'minimalErythemaDose',
+                          grepl('days', attributeName, ignore.case = T) ~ 'degreeDays',
+                          grepl('index', attributeName, ignore.case = T) ~ 'dimensionless',
+                          TRUE ~ ''),
+         attributeDefinition = case_when(attributeName == 'datetime_noDST' ~ 'date and time (GMT -4) of buoy record - no daylight savings observed',
+                                         attributeName == 'SiteName' ~ 'abbreviation for site location',
+                                         attributeName == 'time_flag' ~ 'flag for datetime_noDST and instrument_datetime',
+                                         attributeName == 'barometricPressure_hPa' ~ 'pressure within the atmosphere of the Earth',
+                                         attributeName == 'BP_flag' ~ 'flag for variable barometricPressure_hpa',
+                                         attributeName == 'temperature_degC' ~ 'instantaneous air temperature',
+                                         attributeName == 'temperature_degC_maximum' ~ 'maximum air temperature in previous 30 minutes',
+                                         attributeName == 'temperature_degC_minimum' ~ 'minimum air temperature in previous 30 minutes',
+                                         attributeName == 'relativeHumidity_percent' ~ 'instantaneous relative humidity',
+                                         attributeName == 'temperatureDewPoint_degC' ~ 'instantaneous dew point air temperature',
+                                         attributeName == 'temperatureWetBulb_degC' ~ 'instantaneous wet bulb air temperature',
+                                         attributeName == 'windSpeed_mps' ~ 'instantaneous wind speed',
+                                         attributeName == 'windDirection_SID' ~ 'instantaneous wind direction',
+                                         attributeName == 'windRun_m' ~ 'instantaneous length of flow of air past a point',
+                                         attributeName == 'windGustSpeed_mps' ~ 'speed of greatest gust of wind in previous 30 minutes',
+                                         attributeName == 'windGustDirection_SID' ~ 'direction of greatest gust of wind in the previous 30 minutes',
+                                         attributeName == 'windChill_degC' ~ 'perceived temperature as a result of the effect of wind on the temperature',
+                                         attributeName == 'heatIndex_degC' ~ 'perceived temperature as a result of the combination effect of heat and humidity',
+                                         attributeName == 'THWIndex_degC' ~ 'perceived temperature as a result of the combination effect of temperature, humidity, and wind speed' ,
+                                         attributeName == 'THSWIndex_degC' ~ 'perceived temperature as a result of the combination effect of temperature, humidity, solar radiation, and wind speed', 
+                                         attributeName == 'precipitation_mm' ~ 'total precipitation over previous 30 minutes',
+                                         attributeName == 'rainfallRate_mmphr' ~ 'rate of precipitation based on precipitation_mm variable',
+                                         attributeName == 'rain_flag' ~ 'flag for variable precipitation_mm and rainfallRate_mmphr',
+                                         attributeName == 'radiationTotalIncoming_Wpm2' ~ 'instantaeous total amount of incoming radiation from all frequencies',
+                                         attributeName == 'radiationTotalIncomingRate_Ly' ~ 'instantaneous rate of incoming radiation from all frequencies',
+                                         attributeName == 'radiationTotalIncoming_Wpm2_maximum' ~ 'maximum total amount of incoming radiation from all frequencies in previous 30 minutes',
+                                         attributeName == 'evapotranspiration_mm' ~ 'evapotranspiration over the previous 30 minutes',
+                                         attributeName == 'SR_flag' ~ 'flag for all radiation variables',
+                                         attributeName == 'ultravioletRadiationIndex' ~ 'The global solar UV index (UVI) was developed as an easy-to-understand measure of biologically effective UV radiation with a view to promote public awareness of the risks of UV radiation exposure and sun protection. In the initial work done on UVI in Canada, a typical midday summer erythemal irradiance of 250 mW.m-2 was found leading to the (arbitrary) definition of one UV index equal to an erythemally weighted irradiance of 25 mW.m-2. This gives a typical range of UVI 0 to 11+',
+                                         attributeName == 'ultravioletRadiationDose_MED' ~ 'A measure of the ability of ultraviolet radiation, as a function of wavelength, to produce just perceptible erythema in human skin',
+                                         attributeName == 'ultravioletRadiationIndex_maximum' ~ 'maximum ultravioletRadiationIndex over the previous 30 mintues',
+                                         attributeName == 'UV_flag' ~ 'flag for all ultraviolet variables',
+                                         attributeName == 'heatingDegreeDays' ~ 'heating degree days for reported temperature_degC',
+                                         attributeName == 'coolingDegreeDays' ~ 'cooling degree days for reported temperature_degC',
+                                         attributeName == 'instrument_datetime' ~ 'datetime reported by the instrument, this is for tracking purposes, use datetime_noDST instead of this varaible',
+                                         attributeName == 'source' ~ 'file name of original data',
+                                         TRUE ~ attributeDefinition),
+         
+         dateTimeFormatString = case_when(attributeName == 'datetime_noDST' ~ 'YYYY-MM-DD hh:mm:ss',
+                                          attributeName == 'instrument_datetime' ~ 'YYYY-MM-DD hh:mm:ss'),
+         missingValueCode = 'NA',
+         missingValueCodeExplanation = case_when(grepl('NA', missingValueCode, ignore.case = T) ~ 'not available',
+                                                 TRUE ~ missingValueCodeExplanation),
+         class = case_when(attributeName == 'time_flag' ~ 'character', #no flags
+                           attributeName == 'rain_flag' ~ 'character', #no flags
+                           attributeName == 'heatingDegreeDays' ~ 'numeric',
+                           attributeName == 'coolingDegreeDays' ~ 'numeric',
+                           attributeName == 'source' ~ 'character',
+                           TRUE ~ class))
+attr_SF
+```
+
+Re-write the table with updates:
+```{r}
+write.table(
+  x = attr_SF,
+  file = paste0(dir,'attributes_davis_weather_data_SouthOfTheFells_07-2019_01-2022_L1ODM2_v2022-05-20.txt'), 
+  sep = '\t',
+  row.names = FALSE,
+  quote = FALSE
+)
+```
+
+#### station location data
+
+First, read into R, and make sure it looks okay
+```{r}
+attr_loc <- read.table(
+  file = paste0(dir, 'attributes_weather_station_location.txt'),
+  header = TRUE,
+  sep = '\t',
+  quote = "\"",
+  as.is = TRUE,
+  comment.char = "",
+  fill = T,
+  colClasses = rep("character", 7)
+)
+attr_loc
+```
+
+Now update information in the attribute table:
+```{r}
+attr_loc <- attr_loc %>% 
+  mutate(unit = case_when(grepl('tude', attributeName, ignore.case = T) ~ 'decimalDegrees',
+                          grepl('waterdepth', attributeName, ignore.case = T) ~ 'meter',
+                          TRUE ~ ''),
+         attributeDefinition = case_when(attributeName == 'SiteName' ~ 'abbreviation of site location',
+                                         attributeName == 'StationName' ~ 'full name of site',
+                                         attributeName == 'StationType' ~ 'description of the instrument collecting the data',
+                                         attributeName == 'Latitude' ~ 'latitude of site',
+                                         attributeName == 'Longitude' ~ 'longitude of site',
+                                         attributeName == 'WaterDepthMeters' ~ 'depth of data collection below the surface of the water',
+                                         attributeName == 'SiteType' ~ 'type of data collection site',
+                                         attributeName == 'StationID' ~ 'internal identifier of the StationName/SiteName',
+                                         attributeName == 'DateDeployed' ~ 'datetime of deployment',
+                                         TRUE ~ attributeDefinition),
+         
+         dateTimeFormatString = case_when(attributeName == 'DateDeployed' ~ 'YYYY-MM-DD hh:mm:ss'),
+         missingValueCode = case_when(attributeName == 'WaterDepthMeters' ~ 'NA',
+                                      TRUE ~ NA_character_),
+         missingValueCodeExplanation = case_when(grepl('NA', missingValueCode, ignore.case = T) ~ 'not applicable',
+                                                 is.na(missingValueCode) ~ 'not avaiable',
+                                                 TRUE ~ missingValueCodeExplanation),
+         class = case_when(attributeName == 'SiteName' ~ 'categorical',
+                           attributeName == 'StationName' ~ 'character',
+                           attributeName == 'StationType' ~ 'character',
+                           attributeName == 'WaterDepthMeters' ~ 'numeric',
+                           attributeName == 'StationID' ~ 'character', 
+                           attributeName == 'SiteType' ~ 'character',
+                           TRUE ~ class)
+         )
+attr_loc
+```
+
+Re-write the table with updates:
+```{r}
+write.table(
+  x = attr_loc,
+  file = paste0(dir, 'attributes_weather_station_location.txt'), 
+  sep = '\t',
+  row.names = FALSE,
+  quote = FALSE
+)
+```
+
+### Now, need to define units for 'custom units'
+
+Load the custom units file
+```{r}
+custom_units <- read.table(
+  file = paste0(dir, 'custom_units.txt'),
+  header = TRUE,
+  sep = '\t',
+  quote = "\"",
+  as.is = TRUE,
+  comment.char = "",
+  fill = T,
+  colClasses = rep("character", 5)
+)
+```
+
+
+Four units need to be defined (discovered when you go to define the categorical variables):
+
+* decimalDegrees
+* minimalErythemaDose
+* degreeDays
+* millimetersPerHour
+
+```{r}
+custom_units <- custom_units %>% 
+  add_row(id = 'decimalDegrees',
+            unitType = 'angle',
+            parentSI = 'degree',
+            multiplierToSI = '',
+            description = 'expression of latitude and longitude geographic coordinates as decimal fractions of a degree') %>% 
+  add_row(id = 'minimalErythemaDose',
+            unitType = '',
+            parentSI = '',
+            multiplierToSI = '',
+            description = 'smallest dose that produces erythema within 1 to 6 hours and disappears within 24 hours') %>% 
+  add_row(id = 'degreeDays',
+            unitType = '',
+            parentSI = '',
+            multiplierToSI = '',
+            description = 'a unit used to determine the heating requirements of buildings, representing a fall of one degree below a specified average outdoor temperature for one day') %>% 
+  add_row(id = 'millimetersPerHour',
+            unitType = 'speed',
+            parentSI = '',
+            multiplierToSI = '',
+            description = 'millimeters per hour')
+
+```
+
+Re-write the table with updates:
+```{r}
+write.table(
+  x = custom_units,
+  file = paste0(dir, 'custom_units.txt'), 
+  sep = '\t',
+  row.names = FALSE,
+  quote = FALSE
+)
+```
+
+## Define categorical values
+
+First, create categorical variables metadata:
+```{r}
+template_categorical_variables(
+  path = dir,
+  data.path = paste0(dir, 'data/'),
+)
+
+```
+
+#### For Georges Mills
+
+Read in table:
+```{r}
+catvars_data <- read.table(
+  file = paste0(dir, 'catvars_davis_weather_data_GeorgesMills_07-2019_01-2022_L1ODM2_v2022-05-20.txt'),
+  header = TRUE,
+  sep = '\t',
+  quote = "\"",
+  as.is = TRUE,
+  comment.char = "",
+  fill = T
+  )
+catvars_data
+unique(catvars_data$code)
+```
+
+
+```{r}
+catvars_data <- catvars_data %>% 
+  mutate(definition = case_when(code == 'i' ~ 'data reporting intermittently',
+                                code == 's' ~ 'data are suspect, use with cautuion',
+                                code == 't' ~ 'time is imprecise, may be off by up to 4 hours',
+                                code == 'oAM' ~ 'sensor is obscured in the morning, use with caution',
+                                code == 'oAM; i' ~ 'sensor is obscured in the morning, use with caution; data reporting intermittently',
+                                code == 'oAM; s' ~ 'sensor is obscured in the morning, use with caution; data suspect, use with caution',
+                                grepl('l', code, ignore.case = F) ~ 'barometric pressure is lower than other 2 stations, use with caution',
+                                code == 'm: +11d 10h' ~ 'time has been adjusted by 11 days and 10 hours, time is approximate',
+                                code == 'm: +13h' ~ 'time has been adjusted by 13 hours, time is approximate',
+                                code == 'N' ~ 'north',
+                                code == 'NNE' ~ 'north north east',
+                                code == 'NE' ~ 'north east',
+                                code == 'ENE' ~ 'east north east',
+                                code == 'E' ~ 'east',
+                                code == 'ESE' ~ 'east south east',
+                                code == 'SE' ~ 'south east',
+                                code == 'SSE' ~ 'south south east',
+                                code == 'S' ~ 'south', 
+                                code == 'SSW' ~ 'south south west',
+                                code == 'SW' ~ 'south west',
+                                code == 'WSW' ~ 'west south west',
+                                code == 'W' ~ 'west',
+                                code == 'WNW' ~ 'west north west',
+                                code == 'NW' ~ 'north west',
+                                code == 'NNW' ~ 'north north west',
+                                code == 'GM' ~ 'Georges Mills',
+                                code == 'HC' ~ 'Herrick Cove',
+                                code == 'SF' ~ 'South Fells'))
+catvars_data
+```
+
+Write the new data table
+```{r}
+write.table(
+  x = catvars_data,
+  file = paste0(dir, 'catvars_davis_weather_data_GeorgesMills_07-2019_01-2022_L1ODM2_v2022-05-20.txt'),
+  sep = '\t',
+  row.names = FALSE,
+  quote = FALSE
+)
+
+```
+
+#### For Herrick Cove
+
+Read in table:
+```{r}
+catvars_data <- read.table(
+  file = paste0(dir, 'catvars_davis_weather_data_HerrickCove_07-2019_01-2022_L1ODM2_v2022-05-20.txt'),
+  header = TRUE,
+  sep = '\t',
+  quote = "\"",
+  as.is = TRUE,
+  comment.char = "",
+  fill = T
+  )
+catvars_data
+unique(catvars_data$code)
+```
+
+
+```{r}
+catvars_data <- catvars_data %>% 
+  mutate(definition = case_when(code == 'pine needle removed from rain gauge; data prior may not be precise due to clogged gauge' ~ 'use with caution; pine needle removed from rain gauge; data prior may not be precise due to clogged gauge',
+                                code == 'i' ~ 'data reporting intermittently',
+                                code == 's' ~ 'data are suspect, use with cautuion',
+                                code == 't' ~ 'time is imprecise, may be off by up to 4 hours',
+                                code == 'oAM' ~ 'sensor is obscured in the morning, use with caution',
+                                code == 'oAM; i' ~ 'sensor is obscured in the morning, use with caution; data reporting intermittently',
+                                code == 'oAM; s' ~ 'sensor is obscured in the morning, use with caution; data suspect, use with caution',
+                                grepl('l', code, ignore.case = F) ~ 'barometric pressure is lower than other 2 stations, use with caution',
+                                code == 'm: +11d 10h' ~ 'time has been adjusted by 11 days and 10 hours, time is approximate',
+                                code == 'm: +11d 9.5h' ~ 'time has been adjusted by 11 days and 9.5 hours, time is approximate',
+                                code == 'm: +11h' ~ 'time has been adjusted by 11 hours, time is approximate',
+                                code == 'm: +1h' ~ 'time has been adjusted by 1 hour, time is approximate',               
+                                code == 'm: +2h' ~ 'time has been adjusted by 2 hours, time is approximate',
+                                code == 'm: +3.5h' ~ 'time has been adjusted by 3.5 hours, time is approximate',
+                                code == 'm: +3h' ~ 'time has been adjusted by 3 hours, time is approximate',
+                                code == 'm: +4h' ~ 'time has been adjusted by 4 hours, time is approximate',
+                                code == 'm: +5h' ~ 'time has been adjusted by 5 hours, time is approximate',
+                                code == 'm: +26.5h' ~ 'time has been adjusted by 26.5 hours, time is approximate',
+                                code == 'm: +2.5h' ~ 'time has been adjusted by 2.5 hours, time is approximate',
+                                code == 'm: +13h' ~ 'time has been adjusted by 13 hours, time is approximate',
+                                code == 'N' ~ 'north',
+                                code == 'NNE' ~ 'north north east',
+                                code == 'NE' ~ 'north east',
+                                code == 'ENE' ~ 'east north east',
+                                code == 'E' ~ 'east',
+                                code == 'ESE' ~ 'east south east',
+                                code == 'SE' ~ 'south east',
+                                code == 'SSE' ~ 'south south east',
+                                code == 'S' ~ 'south', 
+                                code == 'SSW' ~ 'south south west',
+                                code == 'SW' ~ 'south west',
+                                code == 'WSW' ~ 'west south west',
+                                code == 'W' ~ 'west',
+                                code == 'WNW' ~ 'west north west',
+                                code == 'NW' ~ 'north west',
+                                code == 'NNW' ~ 'north north west',
+                                code == 'GM' ~ 'Georges Mills',
+                                code == 'HC' ~ 'Herrick Cove',
+                                code == 'SF' ~ 'South Fells'))
+catvars_data
+```
+
+Write the new data table
+```{r}
+write.table(
+  x = catvars_data,
+  file = paste0(dir, 'catvars_davis_weather_data_HerrickCove_07-2019_01-2022_L1ODM2_v2022-05-20.txt'),
+  sep = '\t',
+  row.names = FALSE,
+  quote = FALSE
+)
+
+```
+
+#### For South of the Fells
+
+Read in table:
+```{r}
+catvars_data <- read.table(
+  file = paste0(dir, 'catvars_davis_weather_data_SouthOfTheFells_07-2019_01-2022_L1ODM2_v2022-05-20.txt'),
+  header = TRUE,
+  sep = '\t',
+  quote = "\"",
+  as.is = TRUE,
+  comment.char = "",
+  fill = T
+  )
+catvars_data
+unique(catvars_data$code)
+```
+
+
+```{r}
+catvars_data <- catvars_data %>% 
+  mutate(definition = case_when(code == 'pine needle removed from rain gauge; data prior may not be precise due to clogged gauge' ~ 'pine needle removed from rain gauge; data prior may not be precise due to clogged gauge',
+                                code == 'i' ~ 'data reporting intermittently',
+                                code == 's' ~ 'data are suspect, use with cautuion',
+                                code == 't' ~ 'time is imprecise, may be off by up to 4 hours',
+                                code == 'oAM' ~ 'sensor is obscured in the morning, use with caution',
+                                code == 'oAM; i' ~ 'sensor is obscured in the morning, use with caution; data reporting intermittently',
+                                code == 'oAM; s' ~ 'sensor is obscured in the morning, use with caution; data suspect, use with caution',
+                                grepl('l', code, ignore.case = F) ~ 'barometric pressure is lower than other 2 stations, use with caution',
+                                code == 'm: +11d 10h' ~ 'time has been adjusted by 11 days and 10 hours, time is approximate',
+                                code == 'm: +11d 9.5h' ~ 'time has been adjusted by 11 days and 9.5 hours, time is approximate',
+                                code == 'm: +11h' ~ 'time has been adjusted by 11 hours, time is approximate',
+                                code == 'm: +1h' ~ 'time has been adjusted by 1 hour, time is approximate',               
+                                code == 'm: +2h' ~ 'time has been adjusted by 2 hours, time is approximate',
+                                code == 'm: +3.5h' ~ 'time has been adjusted by 3.5 hours, time is approximate',
+                                code == 'm: +3h' ~ 'time has been adjusted by 3 hours, time is approximate',
+                                code == 'm: +4h' ~ 'time has been adjusted by 4 hours, time is approximate',
+                                code == 'm: +5h' ~ 'time has been adjusted by 5 hours, time is approximate',
+                                code == 'm: +26.5h' ~ 'time has been adjusted by 26.5 hours, time is approximate',
+                                code == 'm: +2.5h' ~ 'time has been adjusted by 2.5 hours, time is approximate',
+                                code == 'm: +13h' ~ 'time has been adjusted by 13 hours, time is approximate',
+                                code == 'N' ~ 'north',
+                                code == 'NNE' ~ 'north north east',
+                                code == 'NE' ~ 'north east',
+                                code == 'ENE' ~ 'east north east',
+                                code == 'E' ~ 'east',
+                                code == 'ESE' ~ 'east south east',
+                                code == 'SE' ~ 'south east',
+                                code == 'SSE' ~ 'south south east',
+                                code == 'S' ~ 'south', 
+                                code == 'SSW' ~ 'south south west',
+                                code == 'SW' ~ 'south west',
+                                code == 'WSW' ~ 'west south west',
+                                code == 'W' ~ 'west',
+                                code == 'WNW' ~ 'west north west',
+                                code == 'NW' ~ 'north west',
+                                code == 'NNW' ~ 'north north west',
+                                code == 'GM' ~ 'Georges Mills',
+                                code == 'HC' ~ 'Herrick Cove',
+                                code == 'SF' ~ 'South Fells'))
+catvars_data
+```
+
+Write the new data table
+```{r}
+write.table(
+  x = catvars_data,
+  file = paste0(dir, 'catvars_davis_weather_data_SouthOfTheFells_07-2019_01-2022_L1ODM2_v2022-05-20.txt'),
+  sep = '\t',
+  row.names = FALSE,
+  quote = FALSE
+)
+
+```
+
+
+#### For the location info
+
+Read in table:
+```{r}
+catvars_loc <- read.table(
+  file = paste0(dir, 'catvars_weather_station_location.txt'),
+  header = TRUE,
+  sep = '\t',
+  quote = "\"",
+  as.is = TRUE,
+  comment.char = "",
+  fill = T
+  )
+catvars_loc
+unique(catvars_loc$code)
+```
+
+Add definitions:
+```{r}
+catvars_loc <- catvars_loc %>% 
+  mutate(definition = case_when(code == 'GM' ~ 'Georges Mills',
+                                code == 'HC' ~ 'Herrick Cove',
+                                code == 'SF' ~ 'South Fells'))
+catvars_loc
+```
+Export table:
+```{r}
+write.table(
+  x = catvars_loc,
+  file = paste0(dir, 'catvars_weather_station_location.txt'), 
+  sep = '\t',
+  row.names = FALSE,
+  quote = FALSE
+)
+
+```
+
+## GEOGRAPHIC COVERAGE
+
+Set the geographic coverage from the site location data
+```{r}
+template_geographic_coverage(
+  path = dir,
+  data.path = paste0(dir, 'data/'),
+  data.table = 'weather_station_location.csv',
+  site.col = 'SiteName',
+  lat.col = 'Latitude',
+  lon.col = 'Longitude'
+)
+```
+
+## TAXONOMIC COVERAGE
+
+Not applicable for this dataset
+
+## OTHER TEXT ENTRIES
+
+Here, we add text to the other templates.
+
+#### Abstract
+
+Read in the template:
+```{r}
+abstract <- suppressWarnings(
+  readLines(paste0(dir, 'abstract.txt'))
+)
+```
+
+Edit the template and check:
+```{r}
+abstract <-  'Davis weather stations, owned and operated by the Lake Sunapee Protective Association (LSPA), were installed at three locations near the shoreline of Lake Sunapee (NH, USA) in July 2019. These stations collect data at 30-minute intervals for a number of weather and meteorological variables continuously throughout the year. In addition to the measured variables, a number of derived variables are also recorded at the same time intervals. Data are manually downloaded from Davis’s WeatherLink website every quarter, then collated and QAQC’d to remove any obvious outliers or recording errors in the R programming language.'
+
+knitr::kable(
+  row.names = FALSE, 
+  col.names = '', 
+  abstract, caption = 'abstract.txt') %>%
+  kableExtra::kable_styling('bordered', font_size = 12) %>%
+  kableExtra::scroll_box(width = '100%', height = '200px')
+```
+
+Export the file:
+```{r}
+write_lines(abstract, paste0(dir, 'abstract.txt'))
+
+```
+
+#### Methods
+
+Read in the template:
+```{r}
+methods <- suppressWarnings(
+  readLines(paste0(dir, 'methods.txt'))
+)
+```
+
+
+Edit the template and preview:
+```{r}
+methods <- 'Davis Cabled Vantage Pro 2 Plus (model 6162C) weather stations with UV (part # 6490) and Solar Radiation (part # 6450) Sensors were installed at Herrick Cove (HC), South Fells (SF) and Georges Mills (GM) locations near the shoreline of Lake Sunapee (NH, USA) in July 2019. The stations are owned and operated by the Lake Sunapee Protective Association (LSPA). The Herrick Cove (‘HC’) station is attached to a boathouse on the southern side of the northeast arm of the lake. The South of the Fells (‘SF’) station is attached to a dock on the eastern shoreline south of the midpoint of the lake. The Georges Mills (‘GM’) station is attached to a boathouse along the western shoreline of the northwest arm of Lake Sunapee.  
+\n
+These stations collect data at 30-minute intervals for a number of meteorological variables (temperature, humidity, wind speed and direction, precipitation, solar radiation, and UV radiation). In addition to the measured variables, a number of derived variables (such as dew point temperature, wet bulb temperature, wind chill, heat index, THW index, THSW index, heating days, and cooling days) are also recorded at the same time intervals.  
+\n
+The SF weather station is experiences shading from surrounding forest cover, and the impact is visible in the data in the mornings (especially in the winter). All solar and UV data have been flagged (‘sr_flag’, ‘uv_flag’) at this location. In general, wind data may have biases due to location and installation of the stations relative to buildings and forest cover, though the precise impact of localized protection from these aspects is unknown. Because the impact is unknown, the wind data have not been flagged. 
+\n
+The HC weather station occasionally has issues with power to the console, which results in slightly incorrect timestamps. Instances where these offsets are visible in the data have been documented within the dataset under the ‘time_flag’ column. Significant time offsets have been fixed to best ability in this dataset, and are also documented in the ‘time_flag’ column. Time corrections are based on the alignment of barometric pressure patterns at the other two sites. The operators at this site report frequent clogging of the rain guage by pine needles - while this has been flagged in the dataset when reported by the operators, there may be instances of precipitation that do not register on the instrument due to a clog without a flag present.
+\n
+If a flag is present for any variable or you are using the wind data, please carefully consider your use case to determine whether these data will be appropriate.
+\n
+Data are manually downloaded from Davis’s WeatherLink website every quarter, then collated and QAQC’d to remove any obvious outliers or recording errors using R (v 4.1.3). All scripts for collating and data QAQC are located in GitHub (https://github.com/Lake-Sunapee-Protective-Association/Davis-Weather-Stations), for which a zipped archive is included in this data package. This data package will be updated approximately annually.  
+\n
+In addition to the data and processing code provided in this package, an Excel file in a modified format of the NETLAKE Metadatabase format has been included. This file contains further information about the instruments, derived versus observed variables, and more. For information about the NETLake Metadata Format, see Jennings, et al. (2017).  
+\n
+Jennings, E., de Eyto, E., Laas, A., Pierson, D., Mircheva, G., Naumoski, A., Clarke, A., Healy, M., Šumberová, K. and Langenhaun, D. (2017), The NETLAKE Metadatabase—A Tool to Support Automatic Monitoring on Lakes in Europe and Beyond. Limnology and Oceanography Bulletin, 26: 95-100. https://doi.org/10.1002/lob.10210'
+
+knitr::kable(
+  row.names = FALSE, 
+  col.names = '', 
+  methods, caption = 'methods.txt') %>%
+  kableExtra::kable_styling('bordered', font_size = 12) %>%
+  kableExtra::scroll_box(width = '100%', height = '200px')
+```
+
+
+Export the template:
+```{r}
+write_lines(methods, paste0(dir, 'methods.txt'))
+```
+
+
+#### Keywords
+
+Load template:
+```{r}
+keywords <- read.table(
+  file = paste0(dir, 'keywords.txt'),
+  header = TRUE,
+  sep = '\t',
+  quote = "\"",
+  as.is = TRUE,
+  comment.char = "",
+  fill = T,
+  colClasses = rep("character", 2)
+)
+```
+
+Edit template:
+```{r}
+keywords <- keywords %>% 
+  add_row(keyword = c('Lake Sunapee Protective Association', 
+                      'LSPA',
+                      'high-frequency data', 
+                      'buoy data', 
+                      'weather', 
+                      'meteorology', 
+                      'air temperature', 
+                      'wind direction', 
+                      'wind speed', 
+                      'solar radiation', 
+                      'ultraviolet radiation'),
+          keywordThesaurus = c('',
+                               '',
+                               '',
+                               '',
+                               'LTER controlled vocabulary', 
+                               'LTER controlled vocabulary',
+                               'LTER controlled vocabulary',
+                               'LTER controlled vocabulary',
+                               'LTER controlled vocabulary',
+                               'LTER controlled vocabulary', 
+                               '')
+          )
+
+knitr::kable(
+  row.names = FALSE, 
+  x = keywords, caption = 'keywords.txt') %>%
+  kableExtra::kable_styling('bordered', font_size = 12) %>%
+  kableExtra::scroll_box(width = '60%', height = '300px')
+```
+
+Export template:
+```{r}
+write.table(
+  x = keywords,
+  file = paste0(dir, 'keywords.txt'), 
+  sep = '\t',
+  row.names = FALSE,
+  quote = FALSE
+)
+```
+
+
+#### Personnel
+
+Read in template:
+```{r}
+personnel <- read.table(
+  file = paste0(dir, 'personnel.txt'),
+  header = TRUE,
+  sep = '\t',
+  quote = "\"",
+  as.is = TRUE,
+  comment.char = "",
+  fill = T,
+  colClasses = rep("character", 10)
+)
+
+colnames(personnel)
+```
+
+Edit template:
+```{r}
+personnel <- personnel %>% 
+    add_row(givenName = '',
+         middleInitial = '',
+         surName = 'LSPA',
+         organizationName = 'Lake Sunapee Protective Association',
+         electronicMailAddress = 'lspa@lakesunapee.org',
+         userId = '',
+         role = 'creator',
+         projectTitle = '',
+         fundingAgency = '',
+         fundingNumber = '') %>% 
+  add_row(givenName = 'Bethel',
+         middleInitial = 'G',
+         surName = 'Steele',
+         organizationName = 'Cary Institute of Ecosystem Studies',
+         electronicMailAddress = 'steeleb@caryinstitute.org',
+         userId = '0000-0003-4365-4103',
+         role = 'creator',
+         projectTitle = '',
+         fundingAgency = '',
+         fundingNumber = '') %>% 
+  add_row(givenName = 'Bethel',
+         middleInitial = 'G',
+         surName = 'Steele',
+         organizationName = 'Cary Institute of Ecosystem Studies',
+         electronicMailAddress = 'steeleb@caryinstitute.org',
+         userId = '0000-0003-4365-4103',
+         role = 'contact',
+         projectTitle = '',
+         fundingAgency = '',
+         fundingNumber = '') %>%  
+  add_row(givenName = 'Kathleen',
+         middleInitial = 'C',
+         surName = 'Weathers',
+         organizationName = 'Cary Institute of Ecosystem Studies',
+         electronicMailAddress = 'weathersk@caryinstitute.org',
+         userId = '0000-0002-3575-6508',
+         role = 'creator',
+         projectTitle = '',
+         fundingAgency = '',
+         fundingNumber = '') %>% 
+    add_row(givenName = '',
+         middleInitial = '',
+         surName = 'LSPA',
+         organizationName = 'Lake Sunapee Protective Association',
+         electronicMailAddress = 'lspa@lakesunapee.org',
+         userId = '',
+         role = 'PI',
+         projectTitle = 'Weathers’ G. Evelyn Hutchinson Chairship',
+         fundingAgency = 'Cary Institute of Ecosysem Studies',
+         fundingNumber = 'N/A') %>% 
+  add_row(givenName = '',
+         middleInitial = '',
+         surName = 'LSPA',
+         organizationName = 'Lake Sunapee Protective Association',
+         electronicMailAddress = 'lspa@lakesunapee.org',
+         userId = '',
+         role = 'PI',
+         projectTitle = 'Davis Weather Station Funding',
+         fundingAgency = 'Lake Sunapee Protective Association',
+         fundingNumber = 'N/A') %>% 
+  add_row(givenName = 'June',
+         middleInitial = '',
+         surName = 'Fichter',
+         organizationName = 'Lake Sunapee Protective Association',
+         electronicMailAddress = 'junef@lakesunapee.org',
+         userId = '',
+         role = 'operator of SF station',
+         projectTitle = '',
+         fundingAgency = '',
+         fundingNumber = '') %>% 
+  add_row(givenName = 'John',
+         middleInitial = '',
+         surName = 'Fichter',
+         organizationName = '',
+         electronicMailAddress = '',
+         userId = '',
+         role = 'operator of SF station',
+         projectTitle = '',
+         fundingAgency = '',
+         fundingNumber = '') %>% 
+  add_row(givenName = 'John',
+         middleInitial = '',
+         surName = 'Merriman',
+         organizationName = '',
+         electronicMailAddress = '',
+         userId = '',
+         role = 'installation and configuration of stations',
+         projectTitle = '',
+         fundingAgency = '',
+         fundingNumber = '') %>% 
+  add_row(givenName = 'Tim',
+         middleInitial = '',
+         surName = 'Eliassen',
+         organizationName = '',
+         electronicMailAddress = '',
+         userId = '',
+         role = 'operator of HC station',
+         projectTitle = '',
+         fundingAgency = '',
+         fundingNumber = '') %>% 
+  add_row(givenName = 'Richie',
+         middleInitial = '',
+         surName = 'Barshay',
+         organizationName = '',
+         electronicMailAddress = '',
+         userId = '',
+         role = 'operator of GM station',
+         projectTitle = '',
+         fundingAgency = '',
+         fundingNumber = '')
+
+knitr::kable(
+  row.names = FALSE, 
+  x = personnel, caption = 'personnel.txt') %>%
+  kableExtra::kable_styling('bordered', font_size = 12) %>%
+  kableExtra::scroll_box(width = '100%', height = '400px')
+```
+  add_row(givenName = '',
+         middleInitial = '',
+         surName = '',
+         organizationName = '',
+         electronicMailAddress = '',
+         userId = '',
+         role = '',
+         projectTitle = '',
+         fundingAgency = '',
+         fundingNumber = '')
+   
+And now export the table:
+```{r}
+write.table(
+  x = personnel,
+  file = paste0(dir, 'personnel.txt'), 
+  sep = '\t',
+  row.names = FALSE,
+  quote = FALSE
+)
+
+```
+
+#### additional information
+
+Read in template:
+```{r}
+additional_info <- suppressWarnings(
+  readLines(paste0(dir, 'additional_info.txt'))
+)
+```
+
+Edit template:
+```{r}
+additional_info <-  'Davis Weather Station details: https://www.davisinstruments.com/product/wireless-vantage-pro2-plus-including-uv-solar-radiation-sensors/'
+
+knitr::kable(
+  row.names = FALSE, 
+  col.names = '', 
+  additional_info, caption = 'additional_info.txt') %>%
+  kableExtra::kable_styling('bordered', font_size = 12) %>%
+  kableExtra::scroll_box(width = '50%', height = '100px')
+```
+
+Export template:
+```{r}
+write_lines(additional_info, paste0(dir, 'additional_info.txt'))
+
+```
+
+
+
+## CREATE EML 
+
+And now for the shining moment! Make the EML!
+```{r}
+make_eml(
+  path = dir,
+    data.path = paste0(dir, 'data/'),
+  eml.path = dir,
+  dataset.title = 'Weather station data from three locations at Lake Sunapee (NH, USA), July 2019 – December 2021',
+  geographic.description = 'The Herrick Cove (‘HC’) station is attached to a boathouse on the southern side of the northeast arm of the lake. The South Fells (‘SF’) station is attached to a dock on the eastern shoreline south of the midpoint of the lake. The Georges Mills (‘GM’) station is attached to a boathouse along the western shoreline of the northwest arm of Lake Sunapee.',
+  geographic.coordinates = c(43.4307, -72.0304, 43.3217, -72.0831),
+  temporal.coverage = c('2019-07-01', '2021-12-31'),
+  maintenance.description = 'ongoing',
+  data.table = c('davis_weather_data_GeorgesMills_07-2019_01-2022_L1ODM2_v2022-05-20.csv',
+                 'davis_weather_data_HerrickCove_07-2019_01-2022_L1ODM2_v2022-05-20.csv',
+                 'davis_weather_data_SouthOfTheFells_07-2019_01-2022_L1ODM2_v2022-05-20.csv',
+                 'weather_station_location.csv'),
+  data.table.name = c('QAQCd weather data for GM', 
+                      'QAQCd weather data for HC',
+                      'QAQCd weather data for SF', 
+                      'weather station locations'),
+  data.table.description = c('QAQCd weather data for all Georges Mills station', 
+                             'QAQCd weather data for all Herrick Cove station', 
+                             'QAQCd weather data for all South of the Fells station', 
+                             'weather station locations'),
+  other.entity = c('Davis-Weather-Stations-main.zip',
+                   'weather-station-metadata.xlsx'),
+  other.entity.name = c('GitHub archive',
+                        'additional station metadata'),
+  other.entity.description = c('code to collate, QAQC weather data, modify heading names to match ODM2 controlled vocabulary, to create EML using EML assemblyline',
+                               'excel file with additional metadata, a modified format of the NETLAKE metadata format'),
+  user.id = 'steeleb',
+  user.domain = 'EDI',
+  package.id = 'edi.736.2'
+)
+
+```
