@@ -3,8 +3,8 @@
 #*                                                               */
 #* AUTHOR:        B. Steele (steeleb@caryinstitute.org)          */
 #* SYSTEM:        Lenovo ThinkCentre/Dell XPS                    */
-#* R Version:     4.0.5                                          */
-#* R Studio:      1.4.1103                                       */
+#* R Version:     4.2.1                                          */
+#* R Studio:      2023.06.01                                    */
 #* PROJECT:       lake sunapee davis weather station             */
 #* PURPOSE:       quick visualize lake sunapee weather data      */
 #* DATE CREATED:  09March2022                                    */
@@ -14,6 +14,1003 @@ library(tidyverse) #1.3.1
 library(ggthemes) #4.2.4
 
 # 3-month L0 visualizations ####
+
+## 2023-07-01 ####
+
+dump_dir = ('C:/Users/steeleb/Dropbox/Lake Sunapee/monitoring/weather/LSPA_Davis_stations/graphs/L0/2023-07-01 download/')
+
+#edit dates as necessary
+start <- as.POSIXct('2023-04-01', tz = 'America/New_York')
+end <-  as.POSIXct('2023-07-01', tz = 'America/New_York')
+
+weather_3month <- weather_data %>% 
+  subset(instrument_datetime >= start & instrument_datetime < end)
+
+#barometer variables
+ggplot(weather_3month, aes(x = instrument_datetime, y = pressure_hpa, color = location)) +
+  geom_point() +
+  facet_grid(location ~ .) +
+  labs(title = 'L0 barometric pressure') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 barometric pressure.jpg'), width = 10, height = 6, units = 'in')
+
+
+#air temperature variables
+weather_3month_airtemp <- weather_3month %>% 
+  select(instrument_datetime, location, temp_c, hightemp_c, lowtemp_c, windchill_c) %>% 
+  gather(variable, temp_deg_c, -instrument_datetime, - location)
+ggplot(weather_3month_airtemp, aes(x = instrument_datetime, y = temp_deg_c, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ .) +
+  labs(title = 'L0 air temperature (deg C)') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 air temperature.jpg'), width = 10, height = 6, units = 'in')
+
+#humidity
+ggplot(weather_3month, aes(x = instrument_datetime, y = humidity_perc, color = location)) +
+  geom_point() +
+  facet_grid(location ~ .) +
+  labs(title = 'L0 humidity') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 humidity.jpg'), width = 10, height = 6, units = 'in')
+
+#dewpoint, wetbulb
+weather_3month_degree <- weather_3month %>% 
+  select(instrument_datetime, location, dewpoint_c, wetbulb_c) %>% 
+  gather(variable, value, -instrument_datetime, - location)
+
+ggplot(weather_3month_degree, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 dewpoint, wetbulb') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 dewpoint wetbulb.jpg'), width = 10, height = 6, units = 'in')
+
+
+#wind speed
+weather_3month_windsp <- weather_3month %>% 
+  select(instrument_datetime, location, windsp_mps, windrun_m, highwindsp_mps) %>% 
+  gather(variable, value, -instrument_datetime, - location)
+
+ggplot(weather_3month_windsp, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 wind') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 wind speed.jpg'), width = 10, height = 6, units = 'in')
+
+#wind direction
+winddir_levels = c('N', 'NNE', 'NE', 'ENE', 
+                   'E', 'ESE', 'SE', 'SSE',
+                   'S', 'SSW', 'SW', 'WSW',
+                   'W', 'WNW', 'NW', 'NNW')
+weather_3month_winddir <- weather_3month %>% 
+  select(instrument_datetime, location, winddir, highwinddir) %>% 
+  gather(variable, value, -instrument_datetime, - location) %>% 
+  mutate(value = factor(value, levels = winddir_levels))
+
+ggplot(weather_3month_winddir, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 wind') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 wind dir.jpg'), width = 10, height = 6, units = 'in')
+
+#index
+weather_3month_index <- weather_3month %>% 
+  select(instrument_datetime, location, heatindex_c, thwindex_c, thswindex_c) %>% 
+  gather(variable, value, -instrument_datetime, - location)
+
+ggplot(weather_3month_index, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 indices') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 heat indicies.jpg'), width = 10, height = 6, units = 'in')
+
+#precip
+weather_3month_precip <- weather_3month %>% 
+  select(instrument_datetime, location, rain_mm, rainrate_mmph) %>% 
+  gather(variable, value, -instrument_datetime, - location)
+
+ggplot(weather_3month_precip, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 precip') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 precipitation.jpg'), width = 10, height = 6, units = 'in')
+
+#solar
+weather_3month_solar <- weather_3month %>% 
+  select(instrument_datetime, location, solarradiation_wpm2, solarenergy_ly, highsolarrad_wpm2, evapotrans_mm) %>% 
+  gather(variable, value, -instrument_datetime, - location)
+
+ggplot(weather_3month_solar, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 solar') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 solar.jpg'), width = 10, height = 6, units = 'in')
+
+#uv
+weather_3month_uv <- weather_3month %>% 
+  select(instrument_datetime, location, uvindex, uvdose_meds, highuvindex) %>% 
+  gather(variable, value, -instrument_datetime, - location)
+
+ggplot(weather_3month_uv, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 UV') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 UV.jpg'), width = 10, height = 6, units = 'in')
+
+
+#degree days
+weather_3month_degreedays <- weather_3month %>% 
+  select(instrument_datetime, location, heatingdegdays, coolingdegdays) %>% 
+  gather(variable, value, -instrument_datetime, - location)
+
+ggplot(weather_3month_degreedays, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 degree days') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 degree days.jpg'), width = 10, height = 6, units = 'in')
+
+
+
+
+## 2023-04-01 ####
+
+dump_dir = ('C:/Users/steeleb/Dropbox/Lake Sunapee/monitoring/weather/LSPA_Davis_stations/graphs/L0/2023-04-01 download/')
+
+#edit dates as necessary
+start <- as.POSIXct('2023-01-01', tz = 'America/New_York')
+end <-  as.POSIXct('2023-04-01', tz = 'America/New_York')
+
+weather_3month <- weather_data %>% 
+  subset(instrument_datetime >= start & instrument_datetime < end)
+
+#barometer variables
+ggplot(weather_3month, aes(x = instrument_datetime, y = pressure_hpa, color = location)) +
+  geom_point() +
+  facet_grid(location ~ .) +
+  labs(title = 'L0 barometric pressure') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 barometric pressure.jpg'), width = 10, height = 6, units = 'in')
+
+
+#air temperature variables
+weather_3month_airtemp <- weather_3month %>% 
+  select(instrument_datetime, location, temp_c, hightemp_c, lowtemp_c, windchill_c) %>% 
+  gather(variable, temp_deg_c, -instrument_datetime, - location)
+ggplot(weather_3month_airtemp, aes(x = instrument_datetime, y = temp_deg_c, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ .) +
+  labs(title = 'L0 air temperature (deg C)') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 air temperature.jpg'), width = 10, height = 6, units = 'in')
+
+#humidity
+ggplot(weather_3month, aes(x = instrument_datetime, y = humidity_perc, color = location)) +
+  geom_point() +
+  facet_grid(location ~ .) +
+  labs(title = 'L0 humidity') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 humidity.jpg'), width = 10, height = 6, units = 'in')
+
+#dewpoint, wetbulb
+weather_3month_degree <- weather_3month %>% 
+  select(instrument_datetime, location, dewpoint_c, wetbulb_c) %>% 
+  gather(variable, value, -instrument_datetime, - location)
+
+ggplot(weather_3month_degree, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 dewpoint, wetbulb') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 dewpoint wetbulb.jpg'), width = 10, height = 6, units = 'in')
+
+
+#wind speed
+weather_3month_windsp <- weather_3month %>% 
+  select(instrument_datetime, location, windsp_mps, windrun_m, highwindsp_mps) %>% 
+  gather(variable, value, -instrument_datetime, - location)
+
+ggplot(weather_3month_windsp, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 wind') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 wind speed.jpg'), width = 10, height = 6, units = 'in')
+
+#wind direction
+winddir_levels = c('N', 'NNE', 'NE', 'ENE', 
+                   'E', 'ESE', 'SE', 'SSE',
+                   'S', 'SSW', 'SW', 'WSW',
+                   'W', 'WNW', 'NW', 'NNW')
+weather_3month_winddir <- weather_3month %>% 
+  select(instrument_datetime, location, winddir, highwinddir) %>% 
+  gather(variable, value, -instrument_datetime, - location) %>% 
+  mutate(value = factor(value, levels = winddir_levels))
+
+ggplot(weather_3month_winddir, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 wind') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 wind dir.jpg'), width = 10, height = 6, units = 'in')
+
+#index
+weather_3month_index <- weather_3month %>% 
+  select(instrument_datetime, location, heatindex_c, thwindex_c, thswindex_c) %>% 
+  gather(variable, value, -instrument_datetime, - location)
+
+ggplot(weather_3month_index, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 indices') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 heat indicies.jpg'), width = 10, height = 6, units = 'in')
+
+#precip
+weather_3month_precip <- weather_3month %>% 
+  select(instrument_datetime, location, rain_mm, rainrate_mmph) %>% 
+  gather(variable, value, -instrument_datetime, - location)
+
+ggplot(weather_3month_precip, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 precip') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 precipitation.jpg'), width = 10, height = 6, units = 'in')
+
+#solar
+weather_3month_solar <- weather_3month %>% 
+  select(instrument_datetime, location, solarradiation_wpm2, solarenergy_ly, highsolarrad_wpm2, evapotrans_mm) %>% 
+  gather(variable, value, -instrument_datetime, - location)
+
+ggplot(weather_3month_solar, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 solar') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 solar.jpg'), width = 10, height = 6, units = 'in')
+
+#uv
+weather_3month_uv <- weather_3month %>% 
+  select(instrument_datetime, location, uvindex, uvdose_meds, highuvindex) %>% 
+  gather(variable, value, -instrument_datetime, - location)
+
+ggplot(weather_3month_uv, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 UV') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 UV.jpg'), width = 10, height = 6, units = 'in')
+
+
+#degree days
+weather_3month_degreedays <- weather_3month %>% 
+  select(instrument_datetime, location, heatingdegdays, coolingdegdays) %>% 
+  gather(variable, value, -instrument_datetime, - location)
+
+ggplot(weather_3month_degreedays, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 degree days') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 degree days.jpg'), width = 10, height = 6, units = 'in')
+
+
+
+
+## 2023-01-01 ####
+dump_dir = ('C:/Users/steeleb/Dropbox/Lake Sunapee/monitoring/weather/LSPA_Davis_stations/graphs/L0/2023-01-01 download/')
+
+#edit dates as necessary
+start <- as.POSIXct('2022-10-01', tz = 'America/New_York')
+end <-  as.POSIXct('2023-01-01', tz = 'America/New_York')
+
+weather_3month <- weather_data %>% 
+  subset(instrument_datetime >= start & instrument_datetime < end)
+
+#barometer variables
+ggplot(weather_3month, aes(x = instrument_datetime, y = pressure_hpa, color = location)) +
+  geom_point() +
+  facet_grid(location ~ .) +
+  labs(title = 'L0 barometric pressure') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 barometric pressure.jpg'), width = 10, height = 6, units = 'in')
+
+
+#air temperature variables
+weather_3month_airtemp <- weather_3month %>% 
+  select(instrument_datetime, location, temp_c, hightemp_c, lowtemp_c, windchill_c) %>% 
+  gather(variable, temp_deg_c, -instrument_datetime, - location)
+ggplot(weather_3month_airtemp, aes(x = instrument_datetime, y = temp_deg_c, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ .) +
+  labs(title = 'L0 air temperature (deg C)') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 air temperature.jpg'), width = 10, height = 6, units = 'in')
+
+#humidity
+ggplot(weather_3month, aes(x = instrument_datetime, y = humidity_perc, color = location)) +
+  geom_point() +
+  facet_grid(location ~ .) +
+  labs(title = 'L0 humidity') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 humidity.jpg'), width = 10, height = 6, units = 'in')
+
+#dewpoint, wetbulb
+weather_3month_degree <- weather_3month %>% 
+  select(instrument_datetime, location, dewpoint_c, wetbulb_c) %>% 
+  gather(variable, value, -instrument_datetime, - location)
+
+ggplot(weather_3month_degree, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 dewpoint, wetbulb') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 dewpoint wetbulb.jpg'), width = 10, height = 6, units = 'in')
+
+
+#wind speed
+weather_3month_windsp <- weather_3month %>% 
+  select(instrument_datetime, location, windsp_mps, windrun_m, highwindsp_mps) %>% 
+  gather(variable, value, -instrument_datetime, - location)
+
+ggplot(weather_3month_windsp, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 wind') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 wind speed.jpg'), width = 10, height = 6, units = 'in')
+
+#wind direction
+winddir_levels = c('N', 'NNE', 'NE', 'ENE', 
+                   'E', 'ESE', 'SE', 'SSE',
+                   'S', 'SSW', 'SW', 'WSW',
+                   'W', 'WNW', 'NW', 'NNW')
+weather_3month_winddir <- weather_3month %>% 
+  select(instrument_datetime, location, winddir, highwinddir) %>% 
+  gather(variable, value, -instrument_datetime, - location) %>% 
+  mutate(value = factor(value, levels = winddir_levels))
+
+ggplot(weather_3month_winddir, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 wind') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 wind dir.jpg'), width = 10, height = 6, units = 'in')
+
+#index
+weather_3month_index <- weather_3month %>% 
+  select(instrument_datetime, location, heatindex_c, thwindex_c, thswindex_c) %>% 
+  gather(variable, value, -instrument_datetime, - location)
+
+ggplot(weather_3month_index, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 indices') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 heat indicies.jpg'), width = 10, height = 6, units = 'in')
+
+#precip
+weather_3month_precip <- weather_3month %>% 
+  select(instrument_datetime, location, rain_mm, rainrate_mmph) %>% 
+  gather(variable, value, -instrument_datetime, - location)
+
+ggplot(weather_3month_precip, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 precip') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 precipitation.jpg'), width = 10, height = 6, units = 'in')
+
+#solar
+weather_3month_solar <- weather_3month %>% 
+  select(instrument_datetime, location, solarradiation_wpm2, solarenergy_ly, highsolarrad_wpm2, evapotrans_mm) %>% 
+  gather(variable, value, -instrument_datetime, - location)
+
+ggplot(weather_3month_solar, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 solar') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 solar.jpg'), width = 10, height = 6, units = 'in')
+
+#uv
+weather_3month_uv <- weather_3month %>% 
+  select(instrument_datetime, location, uvindex, uvdose_meds, highuvindex) %>% 
+  gather(variable, value, -instrument_datetime, - location)
+
+ggplot(weather_3month_uv, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 UV') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 UV.jpg'), width = 10, height = 6, units = 'in')
+
+
+#degree days
+weather_3month_degreedays <- weather_3month %>% 
+  select(instrument_datetime, location, heatingdegdays, coolingdegdays) %>% 
+  gather(variable, value, -instrument_datetime, - location)
+
+ggplot(weather_3month_degreedays, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 degree days') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 degree days.jpg'), width = 10, height = 6, units = 'in')
+
+
+
+
+## 2022-10-01 ####
+dump_dir = ('C:/Users/steeleb/Dropbox/Lake Sunapee/monitoring/weather/LSPA_Davis_stations/graphs/L0/2022-10-01 download/')
+
+#edit dates as necessary
+start <- as.POSIXct('2022-07-01', tz = 'America/New_York')
+end <-  as.POSIXct('2022-10-01', tz = 'America/New_York')
+
+weather_3month <- weather_data %>% 
+  subset(instrument_datetime >= start & instrument_datetime < end)
+
+#barometer variables
+ggplot(weather_3month, aes(x = instrument_datetime, y = pressure_hpa, color = location)) +
+  geom_point() +
+  facet_grid(location ~ .) +
+  labs(title = 'L0 barometric pressure') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 barometric pressure.jpg'), width = 10, height = 6, units = 'in')
+
+
+#air temperature variables
+weather_3month_airtemp <- weather_3month %>% 
+  select(instrument_datetime, location, temp_c, hightemp_c, lowtemp_c, windchill_c) %>% 
+  gather(variable, temp_deg_c, -instrument_datetime, - location)
+ggplot(weather_3month_airtemp, aes(x = instrument_datetime, y = temp_deg_c, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ .) +
+  labs(title = 'L0 air temperature (deg C)') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 air temperature.jpg'), width = 10, height = 6, units = 'in')
+
+#humidity
+ggplot(weather_3month, aes(x = instrument_datetime, y = humidity_perc, color = location)) +
+  geom_point() +
+  facet_grid(location ~ .) +
+  labs(title = 'L0 humidity') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 humidity.jpg'), width = 10, height = 6, units = 'in')
+
+#dewpoint, wetbulb
+weather_3month_degree <- weather_3month %>% 
+  select(instrument_datetime, location, dewpoint_c, wetbulb_c) %>% 
+  gather(variable, value, -instrument_datetime, - location)
+
+ggplot(weather_3month_degree, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 dewpoint, wetbulb') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 dewpoint wetbulb.jpg'), width = 10, height = 6, units = 'in')
+
+
+#wind speed
+weather_3month_windsp <- weather_3month %>% 
+  select(instrument_datetime, location, windsp_mps, windrun_m, highwindsp_mps) %>% 
+  gather(variable, value, -instrument_datetime, - location)
+
+ggplot(weather_3month_windsp, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 wind') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 wind speed.jpg'), width = 10, height = 6, units = 'in')
+
+#wind direction
+winddir_levels = c('N', 'NNE', 'NE', 'ENE', 
+                   'E', 'ESE', 'SE', 'SSE',
+                   'S', 'SSW', 'SW', 'WSW',
+                   'W', 'WNW', 'NW', 'NNW')
+weather_3month_winddir <- weather_3month %>% 
+  select(instrument_datetime, location, winddir, highwinddir) %>% 
+  gather(variable, value, -instrument_datetime, - location) %>% 
+  mutate(value = factor(value, levels = winddir_levels))
+
+ggplot(weather_3month_winddir, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 wind') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 wind dir.jpg'), width = 10, height = 6, units = 'in')
+
+#index
+weather_3month_index <- weather_3month %>% 
+  select(instrument_datetime, location, heatindex_c, thwindex_c, thswindex_c) %>% 
+  gather(variable, value, -instrument_datetime, - location)
+
+ggplot(weather_3month_index, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 indices') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 heat indicies.jpg'), width = 10, height = 6, units = 'in')
+
+#precip
+weather_3month_precip <- weather_3month %>% 
+  select(instrument_datetime, location, rain_mm, rainrate_mmph) %>% 
+  gather(variable, value, -instrument_datetime, - location)
+
+ggplot(weather_3month_precip, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 precip') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 precipitation.jpg'), width = 10, height = 6, units = 'in')
+
+#solar
+weather_3month_solar <- weather_3month %>% 
+  select(instrument_datetime, location, solarradiation_wpm2, solarenergy_ly, highsolarrad_wpm2, evapotrans_mm) %>% 
+  gather(variable, value, -instrument_datetime, - location)
+
+ggplot(weather_3month_solar, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 solar') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 solar.jpg'), width = 10, height = 6, units = 'in')
+
+#uv
+weather_3month_uv <- weather_3month %>% 
+  select(instrument_datetime, location, uvindex, uvdose_meds, highuvindex) %>% 
+  gather(variable, value, -instrument_datetime, - location)
+
+ggplot(weather_3month_uv, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 UV') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 UV.jpg'), width = 10, height = 6, units = 'in')
+
+
+#degree days
+weather_3month_degreedays <- weather_3month %>% 
+  select(instrument_datetime, location, heatingdegdays, coolingdegdays) %>% 
+  gather(variable, value, -instrument_datetime, - location)
+
+ggplot(weather_3month_degreedays, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 degree days') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 degree days.jpg'), width = 10, height = 6, units = 'in')
+
+
+
+
+## 2022-07-01 ####
+dump_dir = ('C:/Users/steeleb/Dropbox/Lake Sunapee/monitoring/weather/LSPA_Davis_stations/graphs/L0/2022-07-01 download/')
+
+#edit dates as necessary
+start <- as.POSIXct('2022-04-01', tz = 'America/New_York')
+end <-  as.POSIXct('2022-07-01', tz = 'America/New_York')
+
+weather_3month <- weather_data %>% 
+  subset(instrument_datetime >= start & instrument_datetime < end)
+
+#barometer variables
+ggplot(weather_3month, aes(x = instrument_datetime, y = pressure_hpa, color = location)) +
+  geom_point() +
+  facet_grid(location ~ .) +
+  labs(title = 'L0 barometric pressure') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 barometric pressure.jpg'), width = 10, height = 6, units = 'in')
+
+
+#air temperature variables
+weather_3month_airtemp <- weather_3month %>% 
+  select(instrument_datetime, location, temp_c, hightemp_c, lowtemp_c, windchill_c) %>% 
+  gather(variable, temp_deg_c, -instrument_datetime, - location)
+ggplot(weather_3month_airtemp, aes(x = instrument_datetime, y = temp_deg_c, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ .) +
+  labs(title = 'L0 air temperature (deg C)') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 air temperature.jpg'), width = 10, height = 6, units = 'in')
+
+#humidity
+ggplot(weather_3month, aes(x = instrument_datetime, y = humidity_perc, color = location)) +
+  geom_point() +
+  facet_grid(location ~ .) +
+  labs(title = 'L0 humidity') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 humidity.jpg'), width = 10, height = 6, units = 'in')
+
+#dewpoint, wetbulb
+weather_3month_degree <- weather_3month %>% 
+  select(instrument_datetime, location, dewpoint_c, wetbulb_c) %>% 
+  gather(variable, value, -instrument_datetime, - location)
+
+ggplot(weather_3month_degree, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 dewpoint, wetbulb') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 dewpoint wetbulb.jpg'), width = 10, height = 6, units = 'in')
+
+
+#wind speed
+weather_3month_windsp <- weather_3month %>% 
+  select(instrument_datetime, location, windsp_mps, windrun_m, highwindsp_mps) %>% 
+  gather(variable, value, -instrument_datetime, - location)
+
+ggplot(weather_3month_windsp, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 wind') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 wind speed.jpg'), width = 10, height = 6, units = 'in')
+
+#wind direction
+winddir_levels = c('N', 'NNE', 'NE', 'ENE', 
+                   'E', 'ESE', 'SE', 'SSE',
+                   'S', 'SSW', 'SW', 'WSW',
+                   'W', 'WNW', 'NW', 'NNW')
+weather_3month_winddir <- weather_3month %>% 
+  select(instrument_datetime, location, winddir, highwinddir) %>% 
+  gather(variable, value, -instrument_datetime, - location) %>% 
+  mutate(value = factor(value, levels = winddir_levels))
+
+ggplot(weather_3month_winddir, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 wind') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 wind dir.jpg'), width = 10, height = 6, units = 'in')
+
+#index
+weather_3month_index <- weather_3month %>% 
+  select(instrument_datetime, location, heatindex_c, thwindex_c, thswindex_c) %>% 
+  gather(variable, value, -instrument_datetime, - location)
+
+ggplot(weather_3month_index, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 indices') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 heat indicies.jpg'), width = 10, height = 6, units = 'in')
+
+#precip
+weather_3month_precip <- weather_3month %>% 
+  select(instrument_datetime, location, rain_mm, rainrate_mmph) %>% 
+  gather(variable, value, -instrument_datetime, - location)
+
+ggplot(weather_3month_precip, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 precip') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 precipitation.jpg'), width = 10, height = 6, units = 'in')
+
+#solar
+weather_3month_solar <- weather_3month %>% 
+  select(instrument_datetime, location, solarradiation_wpm2, solarenergy_ly, highsolarrad_wpm2, evapotrans_mm) %>% 
+  gather(variable, value, -instrument_datetime, - location)
+
+ggplot(weather_3month_solar, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 solar') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 solar.jpg'), width = 10, height = 6, units = 'in')
+
+#uv
+weather_3month_uv <- weather_3month %>% 
+  select(instrument_datetime, location, uvindex, uvdose_meds, highuvindex) %>% 
+  gather(variable, value, -instrument_datetime, - location)
+
+ggplot(weather_3month_uv, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 UV') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 UV.jpg'), width = 10, height = 6, units = 'in')
+
+
+#degree days
+weather_3month_degreedays <- weather_3month %>% 
+  select(instrument_datetime, location, heatingdegdays, coolingdegdays) %>% 
+  gather(variable, value, -instrument_datetime, - location)
+
+ggplot(weather_3month_degreedays, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 degree days') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 degree days.jpg'), width = 10, height = 6, units = 'in')
+
+
+
+
+## 2022-04-01 ####
+dump_dir = ('C:/Users/steeleb/Dropbox/Lake Sunapee/monitoring/weather/LSPA_Davis_stations/graphs/L0/2022-04-01 download/')
+
+#edit dates as necessary
+start <- as.POSIXct('2022-01-01', tz = 'America/New_York')
+end <-  as.POSIXct('2022-04-01', tz = 'America/New_York')
+
+weather_3month <- weather_data %>% 
+  subset(instrument_datetime >= start & instrument_datetime < end)
+
+#barometer variables
+ggplot(weather_3month, aes(x = instrument_datetime, y = pressure_hpa, color = location)) +
+  geom_point() +
+  facet_grid(location ~ .) +
+  labs(title = 'L0 barometric pressure') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 barometric pressure.jpg'), width = 10, height = 6, units = 'in')
+
+
+#air temperature variables
+weather_3month_airtemp <- weather_3month %>% 
+  select(instrument_datetime, location, temp_c, hightemp_c, lowtemp_c, windchill_c) %>% 
+  gather(variable, temp_deg_c, -instrument_datetime, - location)
+ggplot(weather_3month_airtemp, aes(x = instrument_datetime, y = temp_deg_c, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ .) +
+  labs(title = 'L0 air temperature (deg C)') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 air temperature.jpg'), width = 10, height = 6, units = 'in')
+
+#humidity
+ggplot(weather_3month, aes(x = instrument_datetime, y = humidity_perc, color = location)) +
+  geom_point() +
+  facet_grid(location ~ .) +
+  labs(title = 'L0 humidity') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 humidity.jpg'), width = 10, height = 6, units = 'in')
+
+#dewpoint, wetbulb
+weather_3month_degree <- weather_3month %>% 
+  select(instrument_datetime, location, dewpoint_c, wetbulb_c) %>% 
+  gather(variable, value, -instrument_datetime, - location)
+
+ggplot(weather_3month_degree, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 dewpoint, wetbulb') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 dewpoint wetbulb.jpg'), width = 10, height = 6, units = 'in')
+
+
+#wind speed
+weather_3month_windsp <- weather_3month %>% 
+  select(instrument_datetime, location, windsp_mps, windrun_m, highwindsp_mps) %>% 
+  gather(variable, value, -instrument_datetime, - location)
+
+ggplot(weather_3month_windsp, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 wind') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 wind speed.jpg'), width = 10, height = 6, units = 'in')
+
+#wind direction
+winddir_levels = c('N', 'NNE', 'NE', 'ENE', 
+                   'E', 'ESE', 'SE', 'SSE',
+                   'S', 'SSW', 'SW', 'WSW',
+                   'W', 'WNW', 'NW', 'NNW')
+weather_3month_winddir <- weather_3month %>% 
+  select(instrument_datetime, location, winddir, highwinddir) %>% 
+  gather(variable, value, -instrument_datetime, - location) %>% 
+  mutate(value = factor(value, levels = winddir_levels))
+
+ggplot(weather_3month_winddir, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 wind') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 wind dir.jpg'), width = 10, height = 6, units = 'in')
+
+#index
+weather_3month_index <- weather_3month %>% 
+  select(instrument_datetime, location, heatindex_c, thwindex_c, thswindex_c) %>% 
+  gather(variable, value, -instrument_datetime, - location)
+
+ggplot(weather_3month_index, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 indices') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 heat indicies.jpg'), width = 10, height = 6, units = 'in')
+
+#precip
+weather_3month_precip <- weather_3month %>% 
+  select(instrument_datetime, location, rain_mm, rainrate_mmph) %>% 
+  gather(variable, value, -instrument_datetime, - location)
+
+ggplot(weather_3month_precip, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 precip') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 precipitation.jpg'), width = 10, height = 6, units = 'in')
+
+#solar
+weather_3month_solar <- weather_3month %>% 
+  select(instrument_datetime, location, solarradiation_wpm2, solarenergy_ly, highsolarrad_wpm2, evapotrans_mm) %>% 
+  gather(variable, value, -instrument_datetime, - location)
+
+ggplot(weather_3month_solar, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 solar') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 solar.jpg'), width = 10, height = 6, units = 'in')
+
+#uv
+weather_3month_uv <- weather_3month %>% 
+  select(instrument_datetime, location, uvindex, uvdose_meds, highuvindex) %>% 
+  gather(variable, value, -instrument_datetime, - location)
+
+ggplot(weather_3month_uv, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 UV') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 UV.jpg'), width = 10, height = 6, units = 'in')
+
+
+#degree days
+weather_3month_degreedays <- weather_3month %>% 
+  select(instrument_datetime, location, heatingdegdays, coolingdegdays) %>% 
+  gather(variable, value, -instrument_datetime, - location)
+
+ggplot(weather_3month_degreedays, aes(x = instrument_datetime, y = value, color = location)) +
+  geom_point() +
+  facet_grid(variable ~ ., scales = 'free_y') +
+  labs(title = 'L0 degree days') +
+  theme_bw() +
+  scale_x_datetime(breaks = '1 month') +
+  scale_color_colorblind()
+ggsave(file.path(dump_dir, 'L0 degree days.jpg'), width = 10, height = 6, units = 'in')
+
+
 
 ## 2022-01-01 ####
 dump_dir = ('C:/Users/steeleb/Dropbox/Lake Sunapee/monitoring/weather/LSPA_Davis_stations/graphs/L0/2022-01-01 download/')
