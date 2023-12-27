@@ -152,14 +152,12 @@ head(weather_data$datetime_noDST[weather_data$datetime_noDST >= as.POSIXct('2023
 #head(weather_data$datetime_noDST[weather_data$datetime_noDST >= as.POSIXct('2023-11-05', tz = 'Etc/GMT+5')], n = 10)# this will skip 00:30 and 1:00a
 
 # update date for export
-start_year = min(format(weather_data$datetime_noDST, '%Y-%m'))
-end_year = max(format(weather_data$datetime_noDST, '%Y-%m'))
+start_year = min(format(weather_data$instrument_datetime, '%Y-%m'))
+end_year = max(format(weather_data$instrument_datetime, '%Y-%m'))
 
 export_per_station <- function(station) {
   weather_data %>%
     filter(location == station) %>% 
-    mutate(datetime_noDST = as.character(datetime_noDST),
-           instrument_datetime = as.character(instrument_datetime)) %>%
     write_csv(., paste0('C:/Users/steeleb/Dropbox/Lake Sunapee/monitoring/weather/LSPA_Davis_stations/L0 data/davis_weather_data_', station, '_', start_year, '-', end_year, '_L0_', Sys.Date(), '.csv'))
 } 
 
