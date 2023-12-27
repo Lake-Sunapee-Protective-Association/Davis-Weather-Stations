@@ -15,8 +15,9 @@
 #*                09Mar2022 - added through 12/31/2021; moved to */
 #*                GH repo                                        */
 #*                13Aug2023 - added through 07/01/2023; switched */
-#*                to functions instead of loops  
-#*                27Dec2023 - added through 10/01/2023           */
+#*                to functions instead of loops                  */   
+#*                27Dec2023 - added through 10/01/2023; fixed    */
+#*                DST conversion                                 */
 #*                                                               */
 #*****************************************************************/
 
@@ -30,8 +31,10 @@ varlist <- c('datetime', 'pressure_hpa', 'temp_c', 'hightemp_c', 'lowtemp_c', 'h
              'solarradiation_wpm2', 'solarenergy_ly', 'highsolarrad_wpm2', 'evapotrans_mm', 'uvindex',
              'uvdose_meds', 'highuvindex', 'heatingdegdays', 'coolingdegdays')
 
-#note: all data are recorded in local time with DST - because of the way the data are stored, spring forward happens, but it doesn't look like 'fall back' happens - 
-# I'm guessing this is an artifact of the storage format. because of this, all data are treated as America/New_York timezone, which observes DST, and are transformed
+#note: all data are recorded in local time with DST - because of the way the data are stored,
+# spring forward happens, but it doesn't look like 'fall back' happens - 
+# I'm guessing this is an artifact of the storage format. because of this, all data are 
+# treated as America/New_York timezone, which observes DST, and are transformed
 # to Etc/GMT+5 for no DST column
 
 #### Georges Mills ####
@@ -49,8 +52,8 @@ read_and_format_GM <- function(fp) {
                 col_names = varlist,
                 na = c('--', ''))
   b <- b %>%
-    dplyr::mutate(instrument_datetime = as.POSIXct(datetime, format = '%m/%d/%y %I:%M %p', tz='America/New_York')) %>% 
-    dplyr::mutate(datetime_noDST = lubridate::with_tz(as.POSIXct(datetime, format = '%m/%d/%y %I:%M %p'), tzone = 'Etc/GMT+5')) %>%  
+    dplyr::mutate(instrument_datetime = force_tz(as.POSIXct(datetime, format = '%m/%d/%y %I:%M %p'), tzone = 'America/New_York')) %>% 
+    dplyr::mutate(datetime_noDST = lubridate::with_tz(instrument_datetime, tzone = 'Etc/GMT+5')) %>%  
     dplyr::mutate(date = as.Date(datetime_noDST)) %>%
     dplyr::select(-datetime)
   #program spits out first date of next round - so filter to remove last observation
@@ -77,8 +80,8 @@ read_and_format_HC <- function(fp) {
                 col_names = varlist,
                 na = c('--', ''))
   b <- b %>%
-    dplyr::mutate(instrument_datetime = as.POSIXct(datetime, format = '%m/%d/%y %I:%M %p', tz='America/New_York')) %>% 
-    dplyr::mutate(datetime_noDST = lubridate::with_tz(as.POSIXct(datetime, format = '%m/%d/%y %I:%M %p'), tzone = 'Etc/GMT+5')) %>%  
+    dplyr::mutate(instrument_datetime = force_tz(as.POSIXct(datetime, format = '%m/%d/%y %I:%M %p'), tzone = 'America/New_York')) %>% 
+    dplyr::mutate(datetime_noDST = lubridate::with_tz(instrument_datetime, tzone = 'Etc/GMT+5')) %>%  
     dplyr::mutate(date = as.Date(datetime_noDST)) %>%
     dplyr::select(-datetime)
   #program spits out first date of next round - so filter to remove last observation
@@ -106,8 +109,8 @@ read_and_format_SF <- function(fp) {
                 col_names = varlist,
                 na = c('--', ''))
   b <- b %>%
-    dplyr::mutate(instrument_datetime = as.POSIXct(datetime, format = '%m/%d/%y %I:%M %p', tz='America/New_York')) %>% 
-    dplyr::mutate(datetime_noDST = lubridate::with_tz(as.POSIXct(datetime, format = '%m/%d/%y %I:%M %p'), tzone = 'Etc/GMT+5')) %>%  
+    dplyr::mutate(instrument_datetime = force_tz(as.POSIXct(datetime, format = '%m/%d/%y %I:%M %p'), tzone = 'America/New_York')) %>% 
+    dplyr::mutate(datetime_noDST = lubridate::with_tz(instrument_datetime, tzone = 'Etc/GMT+5')) %>%  
     dplyr::mutate(date = as.Date(datetime_noDST)) %>%
     dplyr::select(-datetime)
   #program spits out first date of next round - so filter to remove last observation
@@ -134,19 +137,19 @@ countobs_noDST <- weather_data %>%
   filter(nobs != 48)
 
 # DST DATES: 2019-11-03 
-head(weather_data$datetime_noDST[weather_data$datetime_noDST >= as.POSIXct('2019-11-03', tz = 'Etc/GMT+5')], n = 10) # this will skip 2:30 and 3:00a
+head(weather_data$datetime_noDST[weather_data$datetime_noDST >= as.POSIXct('2019-11-03', tz = 'Etc/GMT+5')], n = 10) # this will skip 00:30 and 1:00a
 #2020-03-08, 2020-11-01
 head(weather_data$datetime_noDST[weather_data$datetime_noDST >= as.POSIXct('2020-03-08', tz = 'Etc/GMT+5')], n = 10)
-head(weather_data$datetime_noDST[weather_data$datetime_noDST >= as.POSIXct('2020-11-01', tz = 'Etc/GMT+5')], n = 10)# this will skip 2:30 and 3:00a
+head(weather_data$datetime_noDST[weather_data$datetime_noDST >= as.POSIXct('2020-11-01', tz = 'Etc/GMT+5')], n = 10)# this will skip 00:30 and 1:00a
 #2021-03-13, 2021-11-07
 head(weather_data$datetime_noDST[weather_data$datetime_noDST >= as.POSIXct('2021-03-13', tz = 'Etc/GMT+5')], n = 10)
-head(weather_data$datetime_noDST[weather_data$datetime_noDST >= as.POSIXct('2021-11-07', tz = 'Etc/GMT+5')], n = 10)# this will skip 2:30 and 3:00a
+head(weather_data$datetime_noDST[weather_data$datetime_noDST >= as.POSIXct('2021-11-07', tz = 'Etc/GMT+5')], n = 10)# this will skip 00:30 and 1:00a
 #2022-03-13, 2022-11-06
 head(weather_data$datetime_noDST[weather_data$datetime_noDST >= as.POSIXct('2022-03-13', tz = 'Etc/GMT+5')], n = 10)
-head(weather_data$datetime_noDST[weather_data$datetime_noDST >= as.POSIXct('2022-11-06', tz = 'Etc/GMT+5')], n = 10)# this will skip 2:30 and 3:00a
+head(weather_data$datetime_noDST[weather_data$datetime_noDST >= as.POSIXct('2022-11-06', tz = 'Etc/GMT+5')], n = 10)# this will skip 00:30 and 1:00a
 #2023-03-12, 2023-11-05
 head(weather_data$datetime_noDST[weather_data$datetime_noDST >= as.POSIXct('2023-03-11', tz = 'Etc/GMT+5')], n = 10)
-#head(weather_data$datetime_noDST[weather_data$datetime_noDST >= as.POSIXct('2023-11-05', tz = 'Etc/GMT+5')], n = 10)# this will skip 2:30 and 3:00a
+#head(weather_data$datetime_noDST[weather_data$datetime_noDST >= as.POSIXct('2023-11-05', tz = 'Etc/GMT+5')], n = 10)# this will skip 00:30 and 1:00a
 
 # update date for export
 start_year = min(format(weather_data$datetime_noDST, '%Y-%m'))
