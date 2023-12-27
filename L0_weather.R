@@ -3,24 +3,25 @@
 #*                                                               */
 #* AUTHOR:        B. Steele (steeleb@caryinstitute.org)          */
 #* SYSTEM:        Lenovo ThinkCentre/Dell XPS                    */
-#* R Version:     4.2.2                                          */
-#* R Studio:      2023.06.01                                     */
+#* R Version:     4.3.2                                          */
+#* R Studio:      2023.12.0-369                                  */
 #* PROJECT:       lake sunapee davis weather station             */
 #* PURPOSE:       process and collate lake sunapee weather data  */
 #* DATE CREATED:  06Nov2019                                      */
 #* LAST ADD:      27Jul through Jul012020                        */
 #*                21Jan2020 - through Jan 01 2020                */
 #*                07Oct2020 - added through Oct 1, but all others*/
-#*                re-downloaded because of additional resoluion  */
+#*                re-downloaded because of additional resolution */
 #*                09Mar2022 - added through 12/31/2021; moved to */
 #*                GH repo                                        */
 #*                13Aug2023 - added through 07/01/2023; switched */
-#*                to functions instead of loops                  */
+#*                to functions instead of loops  
+#*                27Dec2023 - added through 10/01/2023           */
 #*                                                               */
 #*****************************************************************/
 
-library(tidyverse) #1.3.1
-library(ggthemes) #4.2.4
+library(tidyverse) #2.0.0
+library(ggthemes)
 
 #### lists ####
 varlist <- c('datetime', 'pressure_hpa', 'temp_c', 'hightemp_c', 'lowtemp_c', 'humidity_perc', 'dewpoint_c',
