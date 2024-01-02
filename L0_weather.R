@@ -22,7 +22,6 @@
 #*****************************************************************/
 
 library(tidyverse) #2.0.0
-library(ggthemes)
 
 #### lists ####
 varlist <- c('datetime', 'pressure_hpa', 'temp_c', 'hightemp_c', 'lowtemp_c', 'humidity_perc', 'dewpoint_c',
@@ -52,10 +51,10 @@ read_and_format_GM <- function(fp) {
                 col_names = varlist,
                 na = c('--', ''))
   b <- b %>%
-    dplyr::mutate(instrument_datetime = force_tz(as.POSIXct(datetime, format = '%m/%d/%y %I:%M %p'), tzone = 'America/New_York')) %>% 
-    dplyr::mutate(datetime_noDST = lubridate::with_tz(instrument_datetime, tzone = 'Etc/GMT+5')) %>%  
-    dplyr::mutate(date = as.Date(datetime_noDST)) %>%
-    dplyr::select(-datetime)
+    mutate(instrument_datetime = force_tz(as.POSIXct(datetime, format = '%m/%d/%y %I:%M %p'), tzone = 'America/New_York')) %>% 
+    mutate(datetime_noDST = with_tz(instrument_datetime, tzone = 'Etc/GMT+5')) %>%  
+    mutate(date = as.Date(datetime_noDST)) %>%
+    select(-datetime)
   #program spits out first date of next round - so filter to remove last observation
   last_datetime = max(b$instrument_datetime)
   b <- b %>% 
@@ -80,10 +79,10 @@ read_and_format_HC <- function(fp) {
                 col_names = varlist,
                 na = c('--', ''))
   b <- b %>%
-    dplyr::mutate(instrument_datetime = force_tz(as.POSIXct(datetime, format = '%m/%d/%y %I:%M %p'), tzone = 'America/New_York')) %>% 
-    dplyr::mutate(datetime_noDST = lubridate::with_tz(instrument_datetime, tzone = 'Etc/GMT+5')) %>%  
-    dplyr::mutate(date = as.Date(datetime_noDST)) %>%
-    dplyr::select(-datetime)
+    mutate(instrument_datetime = force_tz(as.POSIXct(datetime, format = '%m/%d/%y %I:%M %p'), tzone = 'America/New_York')) %>% 
+    mutate(datetime_noDST = with_tz(instrument_datetime, tzone = 'Etc/GMT+5')) %>%  
+    mutate(date = as.Date(datetime_noDST)) %>%
+    select(-datetime)
   #program spits out first date of next round - so filter to remove last observation
   last_datetime = max(b$instrument_datetime)
   b <- b %>% 
@@ -109,10 +108,10 @@ read_and_format_SF <- function(fp) {
                 col_names = varlist,
                 na = c('--', ''))
   b <- b %>%
-    dplyr::mutate(instrument_datetime = force_tz(as.POSIXct(datetime, format = '%m/%d/%y %I:%M %p'), tzone = 'America/New_York')) %>% 
-    dplyr::mutate(datetime_noDST = lubridate::with_tz(instrument_datetime, tzone = 'Etc/GMT+5')) %>%  
-    dplyr::mutate(date = as.Date(datetime_noDST)) %>%
-    dplyr::select(-datetime)
+    mutate(instrument_datetime = force_tz(as.POSIXct(datetime, format = '%m/%d/%y %I:%M %p'), tzone = 'America/New_York')) %>% 
+    mutate(datetime_noDST = with_tz(instrument_datetime, tzone = 'Etc/GMT+5')) %>%  
+    mutate(date = as.Date(datetime_noDST)) %>%
+    select(-datetime)
   #program spits out first date of next round - so filter to remove last observation
   last_datetime = max(b$instrument_datetime)
   b <- b %>% 
@@ -131,9 +130,9 @@ weather_data <- full_join(GM_data, HC_data) %>%
   arrange(location, datetime_noDST) 
 
 countobs_noDST <- weather_data %>%
-  dplyr::mutate(date = as.Date(datetime_noDST, tz = 'Etc/GMT+5')) %>%
+  mutate(date = as.Date(datetime_noDST, tz = 'Etc/GMT+5')) %>%
   group_by(date, location) %>%
-  dplyr::summarize(nobs = length(datetime_noDST)) %>%
+  summarize(nobs = length(datetime_noDST)) %>%
   filter(nobs != 48)
 
 # DST DATES: 2019-11-03 
@@ -149,7 +148,7 @@ head(weather_data$datetime_noDST[weather_data$datetime_noDST >= as.POSIXct('2022
 head(weather_data$datetime_noDST[weather_data$datetime_noDST >= as.POSIXct('2022-11-06', tz = 'Etc/GMT+5')], n = 10)# this will skip 00:30 and 1:00a
 #2023-03-12, 2023-11-05
 head(weather_data$datetime_noDST[weather_data$datetime_noDST >= as.POSIXct('2023-03-11', tz = 'Etc/GMT+5')], n = 10)
-#head(weather_data$datetime_noDST[weather_data$datetime_noDST >= as.POSIXct('2023-11-05', tz = 'Etc/GMT+5')], n = 10)# this will skip 00:30 and 1:00a
+head(weather_data$datetime_noDST[weather_data$datetime_noDST >= as.POSIXct('2023-11-05', tz = 'Etc/GMT+5')], n = 10)# this will skip 00:30 and 1:00a
 
 # update date for export
 start_year = min(format(weather_data$instrument_datetime, '%Y-%m'))

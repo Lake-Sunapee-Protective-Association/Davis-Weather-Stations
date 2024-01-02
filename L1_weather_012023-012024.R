@@ -6,7 +6,7 @@
 #* R Version:     4.3.2                                         */
 #* R Studio:      2023.12.0                                      */
 #* PROJECT:       lake sunapee davis weather stations            */
-#* PURPOSE:       clean data for 2022                            */
+#* PURPOSE:       clean data for 2023                            */
 #* DATE CREATED:  28Dec2023023                                   */
 #*****************************************************************/
 
@@ -35,9 +35,9 @@ dumpdir <- 'C:/Users/steeleb/Dropbox/Lake Sunapee/monitoring/weather/LSPA_Davis_
 L1_versiondate <- Sys.Date()
 
 #read in raw data
-GM_weather_L0 <- read_csv(paste0(datadir, 'L0 data/davis_weather_data_GM_2019-07-2023-09_L0_2023-12-27.csv'))
-HC_weather_L0 <- read_csv(paste0(datadir, 'L0 data/davis_weather_data_HC_2019-07-2023-09_L0_2023-12-27.csv'))
-SF_weather_L0 <- read_csv(paste0(datadir, 'L0 data/davis_weather_data_SF_2019-07-2023-09_L0_2023-12-27.csv'))
+GM_weather_L0 <- read_csv(paste0(datadir, 'L0 data/davis_weather_data_GM_2019-07-2023-12_L0_2024-01-02.csv'))
+HC_weather_L0 <- read_csv(paste0(datadir, 'L0 data/davis_weather_data_HC_2019-07-2023-12_L0_2024-01-02.csv'))
+SF_weather_L0 <- read_csv(paste0(datadir, 'L0 data/davis_weather_data_SF_2019-07-2023-12_L0_2024-01-02.csv'))
 
 # join together
 weather_L0 <- bind_rows(GM_weather_L0, HC_weather_L0, SF_weather_L0) %>% 
@@ -51,8 +51,8 @@ end_date = '2024-01-01'
 
 #filter for this time period
 weather_L0_2023 <- weather_L0 %>% 
-  filter(instrument_datetime >= as.POSIXct('2023-01-01 00:00', tz = 'America/New_York'),
-         instrument_datetime < as.POSIXct('2024-01-01 00:00', tz = 'America/New_York'))
+  filter(instrument_datetime >= as.POSIXct(paste0(start_date, ' 00:00'), tz = 'America/New_York'),
+         instrument_datetime < as.POSIXct(paste0(end_date, ' 00:00'), tz = 'America/New_York'))
 
 #create a new dataframe for data cleaning to be stored
 weather_L1 <- weather_L0_2023 
@@ -336,9 +336,9 @@ pwalk(list(start = biweekly_2023$date[1:(nrow(biweekly_2023)-1)],
       make_pressure_plots)  
 
 
-#### 6: Sept 12 ----
-date_start = "2023-05-10"
-date_end = "2023-05-11"
+#### 6: Dec 18 ----
+date_start = "2023-12-18"
+date_end = "2023-12-19"
 weather_L1_vert %>% 
   filter(variable == 'pressure_hpa' &
            datetime_noDST > as.Date(date_start) & 
@@ -350,7 +350,7 @@ weather_L1_vert %>%
   scale_x_datetime(minor_breaks = '1 hour') +
   scale_color_colorblind()
 
-#30m shift when record starts 05/10 18:00
+#30m shift when record starts 12/18 07:30
 #join back together and add a flag of 'm' for modified time
 
 HC_timechange <- weather_L1 %>% 
@@ -358,14 +358,14 @@ HC_timechange <- weather_L1 %>%
 noHC_L1 <- weather_L1 %>% 
   filter(location != 'HC')
 
-shift_time = "2023-05-10 12:00"
+shift_time = "2023-12-18 07:30"
 
 HC_timechange <- HC_timechange %>% 
   mutate(datetime_noDST = if_else(datetime_noDST >= as.POSIXct(shift_time, tz = 'Etc/GMT+5'),
                                   datetime_noDST + minutes(30),
                                   datetime_noDST)) %>% 
   mutate(time_flag = if_else(datetime_noDST >= as.POSIXct(shift_time, tz = 'Etc/GMT+5'),
-                             'm: +',28.5
+                             'm: +29',
                              time_flag))
 
 #make sure this worked
@@ -390,17 +390,97 @@ weather_L1_vert <- pivot_data_for_ggplot(weather_L1)
 pwalk(list(start = biweekly_2023$date[1:(nrow(biweekly_2023)-1)], 
            end = biweekly_2023$date[2:nrow(biweekly_2023)]), 
       data = weather_L1_vert,
-      offset = , 28.5
+      offset = 29,
       make_pressure_plots)  
 
+#### 7: Dec 22 ----
+date_start = "2023-12-22"
+date_end = "2023-12-23"
+weather_L1_vert %>% 
+  filter(variable == 'pressure_hpa' &
+           datetime_noDST > as.Date(date_start) & 
+           datetime_noDST < as.Date(date_end)) %>% 
+  ggplot(., aes(x=datetime_noDST, y=value)) + 
+  geom_point(aes(color = location)) +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  scale_x_datetime(minor_breaks = '1 hour') +
+  scale_color_colorblind()
+
+#30m shift when record starts 12/22 08:30
+#join back together and add a flag of 'm' for modified time
+
+HC_timechange <- weather_L1 %>% 
+  filter(location == 'HC')
+noHC_L1 <- weather_L1 %>% 
+  filter(location != 'HC')
+
+shift_time = "2023-12-22 08:30"
+
+HC_timechange <- HC_timechange %>% 
+  mutate(datetime_noDST = if_else(datetime_noDST >= as.POSIXct(shift_time, tz = 'Etc/GMT+5'),
+                                  datetime_noDST + minutes(30),
+                                  datetime_noDST)) %>% 
+  mutate(time_flag = if_else(datetime_noDST >= as.POSIXct(shift_time, tz = 'Etc/GMT+5'),
+                             'm: +29.5',
+                             time_flag))
+
+#make sure this worked
+ggplot(subset(HC_timechange, subset=(datetime_noDST>as.Date(date_start) & 
+                                       datetime_noDST < as.Date(date_end))), 
+       aes(x=datetime_noDST, y=pressure_hpa)) + 
+  geom_point() +
+  geom_point(data = subset(noHC_L1, subset=(datetime_noDST>as.Date(date_start) & 
+                                              datetime_noDST < as.Date(date_end))), 
+             aes(x = datetime_noDST, y = pressure_hpa), shape = 21) +
+  theme_bw() +
+  scale_x_datetime(minor_breaks = '1 day') +
+  scale_color_colorblind()
+
+# re join with non-time change data
+weather_L1 = full_join(HC_timechange, noHC_L1)
+
+#create a vertical dataset for ggplot
+weather_L1_vert <- pivot_data_for_ggplot(weather_L1)
+
+#cycle through pressure only data again
+pwalk(list(start = biweekly_2023$date[1:(nrow(biweekly_2023)-1)], 
+           end = biweekly_2023$date[2:nrow(biweekly_2023)]), 
+      data = weather_L1_vert,
+      offset = 29.5,
+      make_pressure_plots)  
 
 ### Re-run L0.5 graphs after time change ----
-pwalk(list(start = biweekly_2022$date[1:(nrow(biweekly_2022)-1)], 
-           end = biweekly_2022$date[2:nrow(biweekly_2022)]), 
+pwalk(list(start = biweekly_2023$date[1:(nrow(biweekly_2023)-1)], 
+           end = biweekly_2023$date[2:nrow(biweekly_2023)]), 
       make_L05_plots, 
       data = weather_L1_vert)
 
-# data look good at a 2-week level. no flags or recoding needed.
+#### 1: HC looks clogged on storm May 1 ----
+# resolved sometime before Jun 2
+
+weather_L1 <- weather_L1 %>% 
+  mutate(rain_flag = if_else(location == 'HC' & 
+                               date(datetime_noDST) >= ymd('2023-05-01') &
+                               date(datetime_noDST) <= ymd('2023-06-02'),
+                             'clogged rain gauge suspected',
+                             ''))
+
+#### 2: June 25-29 heavy rain at GM but not at HC/SF ----
+# may be errant as early as Jun 17, when GM saw large rainfall, but not at HC/SF
+# HC seems okay after 6/30, when it looks like it was reset
+# SF seems okay after 7/29
+
+weather_L1 <- weather_L1 %>% 
+  mutate(rain_flag = if_else((location == 'HC' & 
+                               date(datetime_noDST) >= ymd('2023-06-17') &
+                               date(datetime_noDST) <= ymd('2023-06-30')) |
+                               (location == "SF" &
+                                date(datetime_noDST) >= ymd('2023-06-17') &
+                                date(datetime_noDST) <= ymd('2023-07-29')),
+                             'clogged rain gauge suspected',
+                             rain_flag))
+
 
 ## Overall data flags ----
 

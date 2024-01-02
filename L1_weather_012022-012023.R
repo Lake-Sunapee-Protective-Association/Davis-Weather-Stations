@@ -736,7 +736,17 @@ pwalk(list(start = biweekly_2022$date[1:(nrow(biweekly_2022)-1)],
       make_L05_plots, 
       data = weather_L1_vert)
 
-# data look good at a 2-week level. no flags or recoding needed.
+#### 1: flag suspect rain Aug 4 at GM ----
+
+weather_L1 <- weather_L1 %>% 
+  mutate(rain_flag = if_else(location == 'GM' & 
+                               date(datetime_noDST) == ymd('2022-08-04', tz = 'Etc/GMT+5') &
+                               rain_mm > 20,
+                             's',
+                             ''))
+
+#Generally, HC nor SF seemed to get clogged this year.
+
 
 ## Overall data flags ----
 
