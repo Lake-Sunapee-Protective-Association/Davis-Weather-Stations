@@ -11,20 +11,19 @@ This document prepares the data form the LSPA weather stations for submission to
 knitr::opts_chunk$set(echo = TRUE)
 
 library(tidyverse)
-library(readxl)
-library(lubridate)
 
-dir <- 'C:/Users/steeleb/Dropbox/Lake Sunapee/monitoring/weather/LSPA_Davis_stations/'
+dir <- 'C:/Users/steeleb/Dropbox/Lake Sunapee/monitoring/weather/LSPA_Davis_stations/L1 data/'
 
-weather_L1a <- read.csv(file.path(dir, 'L1 data/davis_weather_data_2019-07-01_2021-01-01_L1_v2022-04-21.csv')) %>% 
-  mutate(datetime_noDST = with_tz(datetime_noDST, tz= 'Etc/GMT+5'))
-weather_L1b <- read.csv(file.path(dir, 'L1 data/davis_weather_data_2021-01-01_2022-01-01_L1_v2022-04-21.csv')) %>% 
-  mutate(datetime_noDST = with_tz(datetime_noDST, tz= 'Etc/GMT+5'))
+weather_L1_1920 <- read_csv(file.path(dir, 'davis_weather_data_2019-07-01_2021-01-01_L1_v2023-12-27.csv')) 
+weather_L1_21 <- read_csv(file.path(dir, 'davis_weather_data_2021-01-01_2022-01-01_L1_v2023-12-27.csv')) 
+weather_L1_22 <- read_csv(file.path(dir, 'davis_weather_data_2022-01-01_2023-01-01_L1_v2024-01-02.csv'))
+weather_L1_23 <- read_csv(file.path(dir, 'davis_weather_data_2023-01-01_2024-01-01_L1_v2024-01-02.csv'))
 ```
+
 
 Join weather data
 ```{r}
-weather_L1 <- full_join(weather_L1a, weather_L1b)
+weather_L1 <- rbind(weather_L1_1920, weather_L1_21, weather_L1_22, weather_L1_23)
 ```
 
 Need to organize columns more intuitively. They are listed in current order below:
@@ -44,7 +43,7 @@ weather_submission <- weather_L1 %>%
          solarradiation_wpm2, solarenergy_ly, highsolarrad_wpm2, evapotrans_mm, SR_flag,
          uvindex, uvdose_meds, highuvindex, UV_flag,
          heatingdegdays, coolingdegdays,
-         instrument_datetime, source) #can drop date column, as it's a derived value
+         instrument_datetime) #can drop date column, as it's a derived value
 
 colnames(weather_submission)
 ```
@@ -95,6 +94,16 @@ weather_submission <- weather_submission %>%
                         TRUE ~ .))
 ```
 
+There are instances where oAM is repeated in the sr and uv flags - let's take care of that.
+
+```{r}
+unique(weather_submission$SR_flag)
+
+weather_submission <- weather_submission %>% 
+  mutate(SR_flag = str_replace(SR_flag, 'oAM; oAM; oAM', 'oAM'),
+         UV_flag = str_replace(UV_flag, 'oAM; oAM; oAM', 'oAM'))
+```
+
 This file is now ready for submission. Save the .csv as one file per location:
 ```{r}
 unique(weather_submission$SiteName)
@@ -102,16 +111,16 @@ weather_submission %>%
   mutate(datetime_noDST = as.character(datetime_noDST),
          instrument_datetime = as.character(instrument_datetime)) %>% 
   filter(SiteName == 'GM') %>% 
-  write_csv(., paste0(dir, 'L1 data/davis_weather_data_GeorgesMills_07-2019_01-2022_L1ODM2_v2022-05-20.csv'))
+  write_csv(., paste0(dir, 'davis_weather_data_GeorgesMills_07-2019_01-2024_L1ODM2_v2024-01-02.csv'))
 weather_submission %>% 
   mutate(datetime_noDST = as.character(datetime_noDST),
          instrument_datetime = as.character(instrument_datetime)) %>% 
   filter(SiteName == 'HC') %>% 
-  write_csv(., paste0(dir, 'L1 data/davis_weather_data_HerrickCove_07-2019_01-2022_L1ODM2_v2022-05-20.csv'))
+  write_csv(., paste0(dir, 'davis_weather_data_HerrickCove_07-2019_01-2024_L1ODM2_v2024-01-02.csv'))
 weather_submission %>% 
   mutate(datetime_noDST = as.character(datetime_noDST),
          instrument_datetime = as.character(instrument_datetime)) %>% 
   filter(SiteName == 'SF') %>% 
-  write_csv(., paste0(dir, 'L1 data/davis_weather_data_SouthOfTheFells_07-2019_01-2022_L1ODM2_v2022-05-20.csv'))
+  write_csv(., paste0(dir, 'davis_weather_data_SouthOfTheFells_07-2019_01-2024_L1ODM2_v2024-01-02.csv'))
 ```
 

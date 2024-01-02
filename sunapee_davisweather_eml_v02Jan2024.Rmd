@@ -10,14 +10,14 @@ knitr::opts_chunk$set(echo = TRUE)
 
 library(devtools)
 library(EML)
-install_github('EDIorg/EMLassemblyline')
+remotes::install_github("EDIorg/EMLassemblyline")
 library(EMLassemblyline)
 
 library(tidyverse)
 library(readxl)
 library(kableExtra)
 
-dir = 'C:/Users/steeleb/Dropbox/EDI_submissions/sunapee_davisweather_2019-2021_vMay2022/'
+dir = 'C:/Users/steeleb/Dropbox/EDI_submissions/sunapee_davisweather_2019-2023_vJan2024/'
 
 ```
 
@@ -40,9 +40,9 @@ Now to create the table attributes files for the data files (.csv's):
 template_table_attributes(
   path = dir,
   data.path = paste0(dir, 'data/'), #where the data tables are located
-  data.table = c('davis_weather_data_GeorgesMills_07-2019_01-2022_L1ODM2_v2022-05-20.csv', #what the data tables are called
-                 'davis_weather_data_HerrickCove_07-2019_01-2022_L1ODM2_v2022-05-20.csv',
-                 'davis_weather_data_SouthOfTheFells_07-2019_01-2022_L1ODM2_v2022-05-20.csv',
+  data.table = c('davis_weather_data_GeorgesMills_07-2019_01-2024_L1ODM2_v2024-01-02.csv', #what the data tables are called
+                 'davis_weather_data_HerrickCove_07-2019_01-2024_L1ODM2_v2024-01-02.csv',
+                 'davis_weather_data_SouthOfTheFells_07-2019_01-2024_L1ODM2_v2024-01-02.csv',
                  'weather_station_location.csv')
 )
 
@@ -55,7 +55,7 @@ template_table_attributes(
 First, read into R, and make sure it looks okay
 ```{r}
 attr_GM <- read.table(
-  file = paste0(dir, 'attributes_davis_weather_data_GeorgesMills_07-2019_01-2022_L1ODM2_v2022-05-20.txt'),
+  file = paste0(dir, 'attributes_davis_weather_data_GeorgesMills_07-2019_01-2024_L1ODM2_v2024-01-02.txt'),
   header = TRUE,
   sep = '\t',
   quote = "\"",
@@ -76,15 +76,15 @@ attr_GM <- attr_GM %>%
                           grepl('Run_m', attributeName, ignore.case = T) ~ 'meter',
                           grepl('n_mm', attributeName, ignore.case = T) ~ 'millimeter',
                           grepl('mps', attributeName, ignore.case = T) ~ 'meterPerSecond',
-                          grepl('mmphr', attributeName, ignore.case = T) ~ 'millimetersPerHour',
+                          grepl('mmphr', attributeName, ignore.case = T) ~ 'millimeterPerHour',
                           grepl('SID', attributeName, ignore.case = T) ~ 'secondaryIntercardinalDirection',
                           grepl('Wpm2', attributeName, ignore.case = T) ~ 'wattPerMeterSquared',
                           grepl('Ly', attributeName, ignore.case = T) ~ 'langley',
                           grepl('MED', attributeName, ignore.case = T) ~ 'minimalErythemaDose',
-                          grepl('days', attributeName, ignore.case = T) ~ 'degreeDays',
+                          grepl('Day', attributeName, ignore.case = T) ~ 'degreeDay',
                           grepl('index', attributeName, ignore.case = T) ~ 'dimensionless',
                           TRUE ~ ''),
-         attributeDefinition = case_when(attributeName == 'datetime_noDST' ~ 'date and time (GMT -4) of buoy record - no daylight savings observed',
+         attributeDefinition = case_when(attributeName == 'datetime_noDST' ~ 'date and time (GMT -5) of buoy record - no daylight savings observed',
                                          attributeName == 'SiteName' ~ 'abbreviation for site location',
                                          attributeName == 'time_flag' ~ 'flag for datetime_noDST and instrument_datetime',
                                          attributeName == 'barometricPressure_hPa' ~ 'pressure within the atmosphere of the Earth',
@@ -127,11 +127,11 @@ attr_GM <- attr_GM %>%
          missingValueCode = 'NA',
          missingValueCodeExplanation = case_when(grepl('NA', missingValueCode, ignore.case = T) ~ 'not available',
                                                  TRUE ~ missingValueCodeExplanation),
-         class = case_when(attributeName == 'rain_flag' ~ 'categorical',
-                           attributeName == 'time_flag' ~ 'character', #no flags
-                           attributeName == 'BP_flag' ~ 'character', #no flags
-                           attributeName == 'SR_flag' ~ 'character', #no flags
-                           attributeName == 'UV_flag' ~ 'character', #no flags
+         class = case_when(attributeName == 'rain_flag' ~ 'categorical', #no flags
+                           attributeName == 'time_flag' ~ 'categorical', #no flags
+                           attributeName == 'BP_flag' ~ 'categorical', #no flags
+                           attributeName == 'SR_flag' ~ 'categorical', #no flags
+                           attributeName == 'UV_flag' ~ 'categorical', #no flags
                            attributeName == 'heatingDegreeDays' ~ 'numeric',
                            attributeName == 'coolingDegreeDays' ~ 'numeric',
                            attributeName == 'source' ~ 'character',
@@ -143,7 +143,7 @@ Re-write the table with updates:
 ```{r}
 write.table(
   x = attr_GM,
-  file = paste0(dir,'attributes_davis_weather_data_GeorgesMills_07-2019_01-2022_L1ODM2_v2022-05-20.txt'), 
+  file = paste0(dir,'attributes_davis_weather_data_GeorgesMills_07-2019_01-2024_L1ODM2_v2024-01-02.txt'), 
   sep = '\t',
   row.names = FALSE,
   quote = FALSE
@@ -155,7 +155,7 @@ write.table(
 First, read into R, and make sure it looks okay
 ```{r}
 attr_HC <- read.table(
-  file = paste0(dir, 'attributes_davis_weather_data_HerrickCove_07-2019_01-2022_L1ODM2_v2022-05-20.txt'),
+  file = paste0(dir, 'attributes_davis_weather_data_HerrickCove_07-2019_01-2024_L1ODM2_v2024-01-02.txt'),
   header = TRUE,
   sep = '\t',
   quote = "\"",
@@ -176,15 +176,15 @@ attr_HC <- attr_HC %>%
                           grepl('Run_m', attributeName, ignore.case = T) ~ 'meter',
                           grepl('n_mm', attributeName, ignore.case = T) ~ 'millimeter',
                           grepl('mps', attributeName, ignore.case = T) ~ 'meterPerSecond',
-                          grepl('mmphr', attributeName, ignore.case = T) ~ 'millimetersPerHour',
+                          grepl('mmphr', attributeName, ignore.case = T) ~ 'millimeterPerHour',
                           grepl('SID', attributeName, ignore.case = T) ~ 'secondaryIntercardinalDirection',
                           grepl('Wpm2', attributeName, ignore.case = T) ~ 'wattPerMeterSquared',
                           grepl('Ly', attributeName, ignore.case = T) ~ 'langley',
                           grepl('MED', attributeName, ignore.case = T) ~ 'minimalErythemaDose',
-                          grepl('days', attributeName, ignore.case = T) ~ 'degreeDays',
+                          grepl('Day', attributeName, ignore.case = T) ~ 'degreeDay',
                           grepl('index', attributeName, ignore.case = T) ~ 'dimensionless',
                           TRUE ~ ''),
-         attributeDefinition = case_when(attributeName == 'datetime_noDST' ~ 'date and time (GMT -4) of buoy record - no daylight savings observed',
+         attributeDefinition = case_when(attributeName == 'datetime_noDST' ~ 'date and time (GMT -5) of buoy record - no daylight savings observed',
                                          attributeName == 'SiteName' ~ 'abbreviation for site location',
                                          attributeName == 'time_flag' ~ 'flag for datetime_noDST and instrument_datetime',
                                          attributeName == 'barometricPressure_hPa' ~ 'pressure within the atmosphere of the Earth',
@@ -228,10 +228,11 @@ attr_HC <- attr_HC %>%
          missingValueCode = 'NA',
          missingValueCodeExplanation = case_when(grepl('NA', missingValueCode, ignore.case = T) ~ 'not available',
                                                  TRUE ~ missingValueCodeExplanation),
-         class = case_when(attributeName == 'time_flag' ~ 'character', #no flags
-                           attributeName == 'BP_flag' ~ 'character', #no flags
-                           attributeName == 'SR_flag' ~ 'character', #no flags
-                           attributeName == 'UV_flag' ~ 'character', #no flags
+         class = case_when(attributeName == 'time_flag' ~ 'categorical', 
+                           attributeName == 'BP_flag' ~ 'categorical', #no flags
+                           attributeName == 'SR_flag' ~ 'categorical', #no flags
+                           attributeName == 'UV_flag' ~ 'categorical', #no flags
+                           attributeName == 'rain_flag' ~ 'categorical', 
                            attributeName == 'heatingDegreeDays' ~ 'numeric',
                            attributeName == 'coolingDegreeDays' ~ 'numeric',
                            attributeName == 'source' ~ 'character',
@@ -243,19 +244,19 @@ Re-write the table with updates:
 ```{r}
 write.table(
   x = attr_HC,
-  file = paste0(dir,'attributes_davis_weather_data_HerrickCove_07-2019_01-2022_L1ODM2_v2022-05-20.txt'), 
+  file = paste0(dir,'attributes_davis_weather_data_HerrickCove_07-2019_01-2024_L1ODM2_v2024-01-02.txt'), 
   sep = '\t',
   row.names = FALSE,
   quote = FALSE
 )
 ```
 
-#### QAQC'd Herrick Cove data using ODM2 CV
+#### QAQC'd South of the Fells data using ODM2 CV
 
 First, read into R, and make sure it looks okay
 ```{r}
 attr_SF <- read.table(
-  file = paste0(dir, 'attributes_davis_weather_data_SouthOfTheFells_07-2019_01-2022_L1ODM2_v2022-05-20.txt'),
+  file = paste0(dir, 'attributes_davis_weather_data_SouthOfTheFells_07-2019_01-2024_L1ODM2_v2024-01-02.txt'),
   header = TRUE,
   sep = '\t',
   quote = "\"",
@@ -276,15 +277,15 @@ attr_SF <- attr_SF %>%
                           grepl('Run_m', attributeName, ignore.case = T) ~ 'meter',
                           grepl('n_mm', attributeName, ignore.case = T) ~ 'millimeter',
                           grepl('mps', attributeName, ignore.case = T) ~ 'meterPerSecond',
-                          grepl('mmphr', attributeName, ignore.case = T) ~ 'millimetersPerHour',
+                          grepl('mmphr', attributeName, ignore.case = T) ~ 'millimeterPerHour',
                           grepl('SID', attributeName, ignore.case = T) ~ 'secondaryIntercardinalDirection',
                           grepl('Wpm2', attributeName, ignore.case = T) ~ 'wattPerMeterSquared',
                           grepl('Ly', attributeName, ignore.case = T) ~ 'langley',
                           grepl('MED', attributeName, ignore.case = T) ~ 'minimalErythemaDose',
-                          grepl('days', attributeName, ignore.case = T) ~ 'degreeDays',
+                          grepl('day', attributeName, ignore.case = T) ~ 'degreeDay',
                           grepl('index', attributeName, ignore.case = T) ~ 'dimensionless',
                           TRUE ~ ''),
-         attributeDefinition = case_when(attributeName == 'datetime_noDST' ~ 'date and time (GMT -4) of buoy record - no daylight savings observed',
+         attributeDefinition = case_when(attributeName == 'datetime_noDST' ~ 'date and time (GMT -5) of buoy record - no daylight savings observed',
                                          attributeName == 'SiteName' ~ 'abbreviation for site location',
                                          attributeName == 'time_flag' ~ 'flag for datetime_noDST and instrument_datetime',
                                          attributeName == 'barometricPressure_hPa' ~ 'pressure within the atmosphere of the Earth',
@@ -327,8 +328,11 @@ attr_SF <- attr_SF %>%
          missingValueCode = 'NA',
          missingValueCodeExplanation = case_when(grepl('NA', missingValueCode, ignore.case = T) ~ 'not available',
                                                  TRUE ~ missingValueCodeExplanation),
-         class = case_when(attributeName == 'time_flag' ~ 'character', #no flags
-                           attributeName == 'rain_flag' ~ 'character', #no flags
+         class = case_when(attributeName == 'time_flag' ~ 'categorical', #no flags
+                           attributeName == 'rain_flag' ~ 'categorical', #no flags
+                           attributeName == 'BP_flag' ~ 'categorical', #no flags
+                           attributeName == 'SR_flag' ~ 'categorical', #no flags
+                           attributeName == 'UV_flag' ~ 'categorical', #no flags
                            attributeName == 'heatingDegreeDays' ~ 'numeric',
                            attributeName == 'coolingDegreeDays' ~ 'numeric',
                            attributeName == 'source' ~ 'character',
@@ -340,7 +344,7 @@ Re-write the table with updates:
 ```{r}
 write.table(
   x = attr_SF,
-  file = paste0(dir,'attributes_davis_weather_data_SouthOfTheFells_07-2019_01-2022_L1ODM2_v2022-05-20.txt'), 
+  file = paste0(dir,'attributes_davis_weather_data_SouthOfTheFells_07-2019_01-2024_L1ODM2_v2024-01-02.txt'), 
   sep = '\t',
   row.names = FALSE,
   quote = FALSE
@@ -367,7 +371,7 @@ attr_loc
 Now update information in the attribute table:
 ```{r}
 attr_loc <- attr_loc %>% 
-  mutate(unit = case_when(grepl('tude', attributeName, ignore.case = T) ~ 'decimalDegrees',
+  mutate(unit = case_when(grepl('tude', attributeName, ignore.case = T) ~ 'decimalDegree',
                           grepl('waterdepth', attributeName, ignore.case = T) ~ 'meter',
                           TRUE ~ ''),
          attributeDefinition = case_when(attributeName == 'SiteName' ~ 'abbreviation of site location',
@@ -384,8 +388,8 @@ attr_loc <- attr_loc %>%
          dateTimeFormatString = case_when(attributeName == 'DateDeployed' ~ 'YYYY-MM-DD hh:mm:ss'),
          missingValueCode = case_when(attributeName == 'WaterDepthMeters' ~ 'NA',
                                       TRUE ~ NA_character_),
-         missingValueCodeExplanation = case_when(grepl('NA', missingValueCode, ignore.case = T) ~ 'not applicable',
-                                                 is.na(missingValueCode) ~ 'not avaiable',
+         missingValueCodeExplanation = case_when(grepl('NA', missingValueCode, ignore.case = T) ~ 'not available',
+                                                 is.na(missingValueCode) ~ 'not available',
                                                  TRUE ~ missingValueCodeExplanation),
          class = case_when(attributeName == 'SiteName' ~ 'categorical',
                            attributeName == 'StationName' ~ 'character',
@@ -428,14 +432,14 @@ custom_units <- read.table(
 
 Four units need to be defined (discovered when you go to define the categorical variables):
 
-* decimalDegrees
+* decimalDegree
 * minimalErythemaDose
-* degreeDays
-* millimetersPerHour
+* degreeDay
+* millimeterPerHour
 
 ```{r}
 custom_units <- custom_units %>% 
-  add_row(id = 'decimalDegrees',
+  add_row(id = 'decimalDegree',
             unitType = 'angle',
             parentSI = 'degree',
             multiplierToSI = '',
@@ -445,16 +449,16 @@ custom_units <- custom_units %>%
             parentSI = '',
             multiplierToSI = '',
             description = 'smallest dose that produces erythema within 1 to 6 hours and disappears within 24 hours') %>% 
-  add_row(id = 'degreeDays',
+  add_row(id = 'degreeDay',
             unitType = '',
             parentSI = '',
             multiplierToSI = '',
             description = 'a unit used to determine the heating requirements of buildings, representing a fall of one degree below a specified average outdoor temperature for one day') %>% 
-  add_row(id = 'millimetersPerHour',
+  add_row(id = 'millimeterPerHour',
             unitType = 'speed',
             parentSI = '',
             multiplierToSI = '',
-            description = 'millimeters per hour')
+            description = 'expression of rate in millimeter per hour')
 
 ```
 
@@ -485,7 +489,7 @@ template_categorical_variables(
 Read in table:
 ```{r}
 catvars_data <- read.table(
-  file = paste0(dir, 'catvars_davis_weather_data_GeorgesMills_07-2019_01-2022_L1ODM2_v2022-05-20.txt'),
+  file = paste0(dir, 'catvars_davis_weather_data_GeorgesMills_07-2019_01-2024_L1ODM2_v2024-01-02.txt'),
   header = TRUE,
   sep = '\t',
   quote = "\"",
@@ -535,7 +539,7 @@ Write the new data table
 ```{r}
 write.table(
   x = catvars_data,
-  file = paste0(dir, 'catvars_davis_weather_data_GeorgesMills_07-2019_01-2022_L1ODM2_v2022-05-20.txt'),
+  file = paste0(dir, 'catvars_davis_weather_data_GeorgesMills_07-2019_01-2024_L1ODM2_v2024-01-02.txt'),
   sep = '\t',
   row.names = FALSE,
   quote = FALSE
@@ -548,7 +552,7 @@ write.table(
 Read in table:
 ```{r}
 catvars_data <- read.table(
-  file = paste0(dir, 'catvars_davis_weather_data_HerrickCove_07-2019_01-2022_L1ODM2_v2022-05-20.txt'),
+  file = paste0(dir, 'catvars_davis_weather_data_HerrickCove_07-2019_01-2024_L1ODM2_v2024-01-02.txt'),
   header = TRUE,
   sep = '\t',
   quote = "\"",
@@ -564,25 +568,14 @@ unique(catvars_data$code)
 ```{r}
 catvars_data <- catvars_data %>% 
   mutate(definition = case_when(code == 'pine needle removed from rain gauge; data prior may not be precise due to clogged gauge' ~ 'use with caution; pine needle removed from rain gauge; data prior may not be precise due to clogged gauge',
+                                grepl("clogged rain", code) ~ 'use with caution; clogged rain gauge suspected',
                                 code == 'i' ~ 'data reporting intermittently',
                                 code == 's' ~ 'data are suspect, use with cautuion',
                                 code == 't' ~ 'time is imprecise, may be off by up to 4 hours',
                                 code == 'oAM' ~ 'sensor is obscured in the morning, use with caution',
                                 code == 'oAM; i' ~ 'sensor is obscured in the morning, use with caution; data reporting intermittently',
                                 code == 'oAM; s' ~ 'sensor is obscured in the morning, use with caution; data suspect, use with caution',
-                                grepl('l', code, ignore.case = F) ~ 'barometric pressure is lower than other 2 stations, use with caution',
-                                code == 'm: +11d 10h' ~ 'time has been adjusted by 11 days and 10 hours, time is approximate',
-                                code == 'm: +11d 9.5h' ~ 'time has been adjusted by 11 days and 9.5 hours, time is approximate',
-                                code == 'm: +11h' ~ 'time has been adjusted by 11 hours, time is approximate',
-                                code == 'm: +1h' ~ 'time has been adjusted by 1 hour, time is approximate',               
-                                code == 'm: +2h' ~ 'time has been adjusted by 2 hours, time is approximate',
-                                code == 'm: +3.5h' ~ 'time has been adjusted by 3.5 hours, time is approximate',
-                                code == 'm: +3h' ~ 'time has been adjusted by 3 hours, time is approximate',
-                                code == 'm: +4h' ~ 'time has been adjusted by 4 hours, time is approximate',
-                                code == 'm: +5h' ~ 'time has been adjusted by 5 hours, time is approximate',
-                                code == 'm: +26.5h' ~ 'time has been adjusted by 26.5 hours, time is approximate',
-                                code == 'm: +2.5h' ~ 'time has been adjusted by 2.5 hours, time is approximate',
-                                code == 'm: +13h' ~ 'time has been adjusted by 13 hours, time is approximate',
+                                code == 'l' ~ 'barometric pressure is lower than other 2 stations, use with caution',
                                 code == 'N' ~ 'north',
                                 code == 'NNE' ~ 'north north east',
                                 code == 'NE' ~ 'north east',
@@ -601,7 +594,32 @@ catvars_data <- catvars_data %>%
                                 code == 'NNW' ~ 'north north west',
                                 code == 'GM' ~ 'Georges Mills',
                                 code == 'HC' ~ 'Herrick Cove',
-                                code == 'SF' ~ 'South Fells'))
+                                code == 'SF' ~ 'South Fells',
+                                code == 'm: +11d 9h' ~ 'time has been adjusted from instrument_time by 11 days and 9 hours, time is approximate',
+                                code == 'm: +11h' ~ 'time has been adjusted from instrument_time by 11 hours, time is approximate',
+                                code == 'm: +12.5' ~ 'time has been adjusted from instrument_time by 12.5 hours, time is approximate',
+                                code == 'm: +12h' ~ 'time has been adjusted from instrument_time by 12 hours, time is approximate',
+                                (code == 'm: +13h'| code == 'm: +13') ~ 'time has been adjusted from instrument_time by 13 hours, time is approximate',
+                                code == 'm: +13.5' ~ 'time has been adjusted from instrument_time by 13.5 hours, time is approximate',
+                                (code == 'm: +14.5h'| code == 'm: +14.5') ~ 'time has been adjusted from instrument_time by 14.5 hours, time is approximate',
+                                code == 'm: +15' ~ 'time has been adjusted from instrument_time by 15 hours, time is approximate',
+                                code == 'm: +16' ~ 'time has been adjusted from instrument_time by 16 hours, time is approximate',
+                                code == 'm: +1h' ~ 'time has been adjusted from instrument_time by 1 hour, time is approximate',
+                                code == 'm: +2.5h' ~ 'time has been adjusted from instrument_time by 2.5 hours, time is approximate',
+                                code == 'm: +25' ~ 'time has been adjusted from instrument_time by 25 hours, time is approximate',
+                                code == 'm: +26' ~ 'time has been adjusted from instrument_time by 26 hours, time is approximate',
+                                (code == 'm: +26.5'| code == 'm: +26.5h') ~ 'time has been adjusted from instrument_time by 26.5 hours, time is approximate',
+                                code == 'm: +27' ~ 'time has been adjusted from instrument_time by 27 hours, time is approximate',
+                                code == 'm: +27.5' ~ 'time has been adjusted from instrument_time by 27.5 hours, time is approximate',
+                                code == 'm: +28.5' ~ 'time has been adjusted from instrument_time by 28.5 hours, time is approximate',
+                                code == 'm: +29' ~ 'time has been adjusted from instrument_time by 29 hours, time is approximate',
+                                code == 'm: +29.5' ~ 'time has been adjusted from instrument_time by 29.5 hours, time is approximate',
+                                code == 'm: +2h' ~ 'time has been adjusted from instrument_time by 2 hours, time is approximate',
+                                code == 'm: +3.5h' ~ 'time has been adjusted from instrument_time by 3.5 hours, time is approximate',
+                                code == 'm: +3h' ~ 'time has been adjusted from instrument_time by 3 hours, time is approximate',
+                                code == 'm: +4.5h' ~ 'time has been adjusted from instrument_time by 4.5 hours, time is approximate',
+                                code == 'm: +5h' ~ 'time has been adjusted from instrument_time by 5 hours, time is approximate',
+                                TRUE ~ ''))
 catvars_data
 ```
 
@@ -609,7 +627,7 @@ Write the new data table
 ```{r}
 write.table(
   x = catvars_data,
-  file = paste0(dir, 'catvars_davis_weather_data_HerrickCove_07-2019_01-2022_L1ODM2_v2022-05-20.txt'),
+  file = paste0(dir, 'catvars_davis_weather_data_HerrickCove_07-2019_01-2024_L1ODM2_v2024-01-02.txt'),
   sep = '\t',
   row.names = FALSE,
   quote = FALSE
@@ -622,7 +640,7 @@ write.table(
 Read in table:
 ```{r}
 catvars_data <- read.table(
-  file = paste0(dir, 'catvars_davis_weather_data_SouthOfTheFells_07-2019_01-2022_L1ODM2_v2022-05-20.txt'),
+  file = paste0(dir, 'catvars_davis_weather_data_SouthOfTheFells_07-2019_01-2024_L1ODM2_v2024-01-02.txt'),
   header = TRUE,
   sep = '\t',
   quote = "\"",
@@ -638,13 +656,14 @@ unique(catvars_data$code)
 ```{r}
 catvars_data <- catvars_data %>% 
   mutate(definition = case_when(code == 'pine needle removed from rain gauge; data prior may not be precise due to clogged gauge' ~ 'pine needle removed from rain gauge; data prior may not be precise due to clogged gauge',
+                                grepl("clogged rain", code) ~ 'use with caution; clogged rain gauge suspected',
                                 code == 'i' ~ 'data reporting intermittently',
                                 code == 's' ~ 'data are suspect, use with cautuion',
                                 code == 't' ~ 'time is imprecise, may be off by up to 4 hours',
                                 code == 'oAM' ~ 'sensor is obscured in the morning, use with caution',
                                 code == 'oAM; i' ~ 'sensor is obscured in the morning, use with caution; data reporting intermittently',
                                 code == 'oAM; s' ~ 'sensor is obscured in the morning, use with caution; data suspect, use with caution',
-                                grepl('l', code, ignore.case = F) ~ 'barometric pressure is lower than other 2 stations, use with caution',
+                                code == 'l' ~ 'barometric pressure is lower than other 2 stations, use with caution',
                                 code == 'm: +11d 10h' ~ 'time has been adjusted by 11 days and 10 hours, time is approximate',
                                 code == 'm: +11d 9.5h' ~ 'time has been adjusted by 11 days and 9.5 hours, time is approximate',
                                 code == 'm: +11h' ~ 'time has been adjusted by 11 hours, time is approximate',
@@ -683,7 +702,7 @@ Write the new data table
 ```{r}
 write.table(
   x = catvars_data,
-  file = paste0(dir, 'catvars_davis_weather_data_SouthOfTheFells_07-2019_01-2022_L1ODM2_v2022-05-20.txt'),
+  file = paste0(dir, 'catvars_davis_weather_data_SouthOfTheFells_07-2019_01-2024_L1ODM2_v2024-01-02.txt'),
   sep = '\t',
   row.names = FALSE,
   quote = FALSE
@@ -800,7 +819,7 @@ The HC weather station occasionally has issues with power to the console, which 
 \n
 If a flag is present for any variable or you are using the wind data, please carefully consider your use case to determine whether these data will be appropriate.
 \n
-Data are manually downloaded from Davis’s WeatherLink website every quarter, then collated and QAQC’d to remove any obvious outliers or recording errors using R (v 4.1.3). All scripts for collating and data QAQC are located in GitHub (https://github.com/Lake-Sunapee-Protective-Association/Davis-Weather-Stations), for which a zipped archive is included in this data package. This data package will be updated approximately annually.  
+Data are manually downloaded from Davis’s WeatherLink website every quarter, then collated and QAQC’d to remove any obvious outliers or recording errors using R (v 4.3.2). All scripts for collating and data QAQC are located in GitHub (https://github.com/Lake-Sunapee-Protective-Association/Davis-Weather-Stations), for which a zipped archive is included in this data package. This data package will be updated approximately annually.  
 \n
 In addition to the data and processing code provided in this package, an Excel file in a modified format of the NETLAKE Metadatabase format has been included. This file contains further information about the instruments, derived versus observed variables, and more. For information about the NETLake Metadata Format, see Jennings, et al. (2017).  
 \n
@@ -924,16 +943,16 @@ personnel <- personnel %>%
          projectTitle = '',
          fundingAgency = '',
          fundingNumber = '') %>% 
-  add_row(givenName = 'Bethel',
-         middleInitial = 'G',
-         surName = 'Steele',
+  add_row(givenName = 'Kathleen',
+         middleInitial = 'C',
+         surName = 'Weathers',
          organizationName = 'Cary Institute of Ecosystem Studies',
-         electronicMailAddress = 'steeleb@caryinstitute.org',
-         userId = '0000-0003-4365-4103',
+         electronicMailAddress = 'weathersk@caryinstitute.org',
+         userId = '0000-0002-3575-6508',
          role = 'contact',
          projectTitle = '',
          fundingAgency = '',
-         fundingNumber = '') %>%  
+         fundingNumber = '') %>%
   add_row(givenName = 'Kathleen',
          middleInitial = 'C',
          surName = 'Weathers',
@@ -967,8 +986,8 @@ personnel <- personnel %>%
   add_row(givenName = 'June',
          middleInitial = '',
          surName = 'Fichter',
-         organizationName = 'Lake Sunapee Protective Association',
-         electronicMailAddress = 'junef@lakesunapee.org',
+         organizationName = '',
+         electronicMailAddress = '',
          userId = '',
          role = 'operator of SF station',
          projectTitle = '',
@@ -1081,14 +1100,14 @@ make_eml(
   path = dir,
     data.path = paste0(dir, 'data/'),
   eml.path = dir,
-  dataset.title = 'Weather station data from three locations at Lake Sunapee (NH, USA), July 2019 – December 2021',
+  dataset.title = 'Weather station data from three locations at Lake Sunapee (NH, USA), July 2019 – December 2023',
   geographic.description = 'The Herrick Cove (‘HC’) station is attached to a boathouse on the southern side of the northeast arm of the lake. The South Fells (‘SF’) station is attached to a dock on the eastern shoreline south of the midpoint of the lake. The Georges Mills (‘GM’) station is attached to a boathouse along the western shoreline of the northwest arm of Lake Sunapee.',
   geographic.coordinates = c(43.4307, -72.0304, 43.3217, -72.0831),
-  temporal.coverage = c('2019-07-01', '2021-12-31'),
+  temporal.coverage = c('2019-07-01', '2023-12-31'),
   maintenance.description = 'ongoing',
-  data.table = c('davis_weather_data_GeorgesMills_07-2019_01-2022_L1ODM2_v2022-05-20.csv',
-                 'davis_weather_data_HerrickCove_07-2019_01-2022_L1ODM2_v2022-05-20.csv',
-                 'davis_weather_data_SouthOfTheFells_07-2019_01-2022_L1ODM2_v2022-05-20.csv',
+  data.table = c('davis_weather_data_GeorgesMills_07-2019_01-2024_L1ODM2_v2024-01-02.csv',
+                 'davis_weather_data_HerrickCove_07-2019_01-2024_L1ODM2_v2024-01-02.csv',
+                 'davis_weather_data_SouthOfTheFells_07-2019_01-2024_L1ODM2_v2024-01-02.csv',
                  'weather_station_location.csv'),
   data.table.name = c('QAQCd weather data for GM', 
                       'QAQCd weather data for HC',
@@ -1106,7 +1125,7 @@ make_eml(
                                'excel file with additional metadata, a modified format of the NETLAKE metadata format'),
   user.id = 'steeleb',
   user.domain = 'EDI',
-  package.id = 'edi.736.2'
+  package.id = 'edi.736.3'
 )
 
 ```

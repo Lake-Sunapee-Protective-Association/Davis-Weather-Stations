@@ -8,10 +8,10 @@
 #* PROJECT:       lake sunapee davis weather stations            */
 #* PURPOSE:       clean data for 2021                            */
 #* DATE CREATED:  09March2022                                    */
+#* LAST MODIFIED: 27Dec2023 update with DST changes              */
 #*****************************************************************/
 
 library(tidyverse)
-library(lubridate)
 library(ggthemes)
 
 #set up directory paths
@@ -48,7 +48,16 @@ allcharvars = c("winddir", "highwinddir")
 L1_versiondate <- Sys.Date()
 
 #read in raw data
-weather_L0 <- read.csv(paste0(datadir, 'L0 data/davis_weather_data_2019-2022_L0_2022-03-09.csv'))
+GM_weather_L0 <- read_csv(paste0(datadir, 'L0 data/davis_weather_data_GM_2019-07-2023-09_L0_2023-12-27.csv'))
+HC_weather_L0 <- read_csv(paste0(datadir, 'L0 data/davis_weather_data_HC_2019-07-2023-09_L0_2023-12-27.csv'))
+SF_weather_L0 <- read_csv(paste0(datadir, 'L0 data/davis_weather_data_SF_2019-07-2023-09_L0_2023-12-27.csv'))
+
+# join together
+weather_L0 <- bind_rows(GM_weather_L0, HC_weather_L0, SF_weather_L0) %>% 
+  #coerce to tz-aware time, file export defaults to UTC time
+  mutate(instrument_datetime = with_tz(instrument_datetime, "America/New_York"),
+         datetime_noDST = with_tz(instrument_datetime, "Etc/GMT+5"))
+
 
 #set time period of interest:
 start_date = '2021-01-01'
@@ -56,20 +65,15 @@ end_date = '2022-01-01'
 
 #filter for this time period
 weather_L0_2021 <- weather_L0 %>% 
-  mutate(datetime_noDST = as.POSIXct(datetime_noDST, tz = 'Etc/GMT+5'),
-         datetime_noDST = force_tz(datetime_noDST, tz = 'Etc/GMT+5'),
-         instrument_datetime = as.POSIXct(instrument_datetime, tz = 'America/New_York')) %>% 
   filter(instrument_datetime >= as.POSIXct(start_date, tz = 'America/New_York') &
            instrument_datetime < as.POSIXct(end_date, tz= 'America/New_York'))
-head(weather_L0_2021)
-tail(weather_L0_2021)
 
 #create a new dataframe for data cleaning to be stored
 weather_L1 <- weather_L0_2021 
 
 #create a vertical dataset for ggplot
 weather_L0_vert <- weather_L0_2021 %>% 
-  select(location, datetime_noDST, source, all_of(dataforviz)) %>% #select only the data for visualization
+  select(location, datetime_noDST, all_of(dataforviz)) %>% #select only the data for visualization
   mutate(winddir = case_when(winddir == 'N' ~ '0',
                              winddir == 'NNE' ~ '1', 
                              winddir == 'NE' ~ '2',
@@ -85,9 +89,11 @@ weather_L0_vert <- weather_L0_2021 %>%
                              winddir == 'W' ~ '12',
                              winddir == 'WNW' ~ '13',
                              winddir == 'NW' ~ '14',
-                             winddir == 'NNW' ~ '15')) %>% 
-  gather(variable, value, -location, - datetime_noDST, -source) %>% 
-  mutate(value = as.numeric(value))
+                             winddir == 'NNW' ~ '15'),
+         winddir = as.numeric(winddir)) %>% 
+  pivot_longer(cols = all_of(dataforviz), 
+               names_to = "variable", 
+               values_to = "value") 
 
 
 #create a list of 2 weeks during time period of interest
@@ -169,7 +175,7 @@ weather_L1 = full_join(HC_timechange, noHC_L1)
 
 #create a vertical dataset for ggplot
 weather_L1_vert <- weather_L1 %>% 
-  select(location, datetime_noDST, source, all_of(dataforviz)) %>% #select only the data for visualization
+  select(location, datetime_noDST, all_of(dataforviz)) %>% #select only the data for visualization
   mutate(winddir = case_when(winddir == 'N' ~ '0',
                              winddir == 'NNE' ~ '1', 
                              winddir == 'NE' ~ '2',
@@ -185,9 +191,11 @@ weather_L1_vert <- weather_L1 %>%
                              winddir == 'W' ~ '12',
                              winddir == 'WNW' ~ '13',
                              winddir == 'NW' ~ '14',
-                             winddir == 'NNW' ~ '15')) %>% 
-  gather(variable, value, -location, - datetime_noDST, -source) %>% 
-  mutate(value = as.numeric(value))
+                             winddir == 'NNW' ~ '15'),
+         winddir = as.numeric(winddir)) %>% 
+  pivot_longer(cols = all_of(dataforviz), 
+               names_to = "variable", 
+               values_to = "value") 
 
 #cycle through pressure only data again
 pressureonly <- weather_L1_vert %>% 
@@ -218,7 +226,7 @@ ggplot(subset(pressureonly, subset=(datetime_noDST>as.Date('2021-09-25') &
   scale_x_datetime(minor_breaks = '1 day') +
   scale_color_colorblind()
 
-#4h shift starts '2021-09-25 23:30
+#4h shift starts '2021-09-25 21:30
 #join back together and add a flag of 'm' for modified time
 
 HC_timechange <- weather_L1 %>% 
@@ -227,9 +235,9 @@ noHC_L1 <- weather_L1 %>%
   filter(location != 'HC')
 
 HC_timechange <- HC_timechange %>% 
-  mutate(datetime_noDST = case_when(datetime_noDST >= as.POSIXct('2021-09-25 23:30', tz = 'Etc/GMT+5') ~ datetime_noDST + hours(4),
+  mutate(datetime_noDST = case_when(datetime_noDST >= as.POSIXct('2021-09-25 21:30', tz = 'Etc/GMT+5') ~ datetime_noDST + hours(4),
                                     TRUE ~ datetime_noDST)) %>% 
-  mutate(time_flag = case_when(datetime_noDST >= as.POSIXct('2021-09-25 23:30', tz = 'Etc/GMT+5') ~ 'm: +5h',
+  mutate(time_flag = case_when(datetime_noDST >= as.POSIXct('2021-09-25 21:30', tz = 'Etc/GMT+5') ~ 'm: +5h',
                                TRUE ~ time_flag))
 
 #make sure this worked
@@ -247,9 +255,8 @@ ggplot(subset(HC_timechange, subset=(datetime_noDST>as.Date('2021-09-25') &
 # re join with non-time change data
 weather_L1 = full_join(HC_timechange, noHC_L1)
 
-#create a vertical dataset for ggplot
 weather_L1_vert <- weather_L1 %>% 
-  select(location, datetime_noDST, source, all_of(dataforviz)) %>% #select only the data for visualization
+  select(location, datetime_noDST, all_of(dataforviz)) %>% #select only the data for visualization
   mutate(winddir = case_when(winddir == 'N' ~ '0',
                              winddir == 'NNE' ~ '1', 
                              winddir == 'NE' ~ '2',
@@ -265,9 +272,11 @@ weather_L1_vert <- weather_L1 %>%
                              winddir == 'W' ~ '12',
                              winddir == 'WNW' ~ '13',
                              winddir == 'NW' ~ '14',
-                             winddir == 'NNW' ~ '15')) %>% 
-  gather(variable, value, -location, - datetime_noDST, -source) %>% 
-  mutate(value = as.numeric(value))
+                             winddir == 'NNW' ~ '15'),
+         winddir = as.numeric(winddir)) %>% 
+  pivot_longer(cols = all_of(dataforviz), 
+               names_to = "variable", 
+               values_to = "value") 
 
 #cycle through pressure only data again
 pressureonly <- weather_L1_vert %>% 
@@ -298,7 +307,7 @@ ggplot(subset(pressureonly, subset=(datetime_noDST>as.Date('2021-12-11') &
   scale_x_datetime(minor_breaks = '1 day') +
   scale_color_colorblind()
 
-#6h shift starts 2021-03-01 21:30
+#6h shift starts 2021-12-11 22:30
 #join back together and add a flag of 'm' for modified time
 
 HC_timechange <- weather_L1 %>% 
@@ -307,9 +316,9 @@ noHC_L1 <- weather_L1 %>%
   filter(location != 'HC')
 
 HC_timechange <- HC_timechange %>% 
-  mutate(datetime_noDST = case_when(datetime_noDST >= as.POSIXct('2021-12-12 00:30', tz = 'Etc/GMT+5') ~ datetime_noDST + hours(6),
+  mutate(datetime_noDST = case_when(datetime_noDST >= as.POSIXct('2021-12-11 22:30', tz = 'Etc/GMT+5') ~ datetime_noDST + hours(6),
                                     TRUE ~ datetime_noDST)) %>% 
-  mutate(time_flag = case_when(datetime_noDST >= as.POSIXct('2021-12-12 00:30', tz = 'Etc/GMT+5') ~ 'm: +11h',
+  mutate(time_flag = case_when(datetime_noDST >= as.POSIXct('2021-12-11 22:30', tz = 'Etc/GMT+5') ~ 'm: +11h',
                                TRUE ~ time_flag))
 
 #make sure this worked
@@ -327,9 +336,8 @@ ggplot(subset(HC_timechange, subset=(datetime_noDST>as.Date('2021-12-11') &
 # re join with non-time change data
 weather_L1 = full_join(HC_timechange, noHC_L1)
 
-#create a vertical dataset for ggplot
 weather_L1_vert <- weather_L1 %>% 
-  select(location, datetime_noDST, source, all_of(dataforviz)) %>% #select only the data for visualization
+  select(location, datetime_noDST, all_of(dataforviz)) %>% #select only the data for visualization
   mutate(winddir = case_when(winddir == 'N' ~ '0',
                              winddir == 'NNE' ~ '1', 
                              winddir == 'NE' ~ '2',
@@ -345,9 +353,11 @@ weather_L1_vert <- weather_L1 %>%
                              winddir == 'W' ~ '12',
                              winddir == 'WNW' ~ '13',
                              winddir == 'NW' ~ '14',
-                             winddir == 'NNW' ~ '15')) %>% 
-  gather(variable, value, -location, - datetime_noDST, -source) %>% 
-  mutate(value = as.numeric(value))
+                             winddir == 'NNW' ~ '15'),
+         winddir = as.numeric(winddir)) %>% 
+  pivot_longer(cols = all_of(dataforviz), 
+               names_to = "variable", 
+               values_to = "value") 
 
 #cycle through pressure only data again
 pressureonly <- weather_L1_vert %>% 
@@ -422,9 +432,9 @@ ggplot(subset(weather_L1, subset=(datetime_noDST>as.Date('2021-08-02') &
 
 weather_L1 <- weather_L1 %>% 
   mutate_at(vars(precipvars),
-            ~case_when(location == 'HC' & datetime_noDST == as.POSIXct('2021-08-02 14:30', tz = 'Etc/GMT+5') ~ NA_real_,
+            ~case_when(location == 'HC' & datetime_noDST == as.POSIXct('2021-08-02 12:30', tz = 'Etc/GMT+5') ~ NA_real_,
                              TRUE ~ .)) %>% 
-  mutate(rain_flag = case_when(location == 'HC' & datetime_noDST == as.POSIXct('2021-08-02 14:30', tz = 'Etc/GMT+5') ~ 'pine needle removed from rain gauge; data prior may not be precise due to clogged gauge',
+  mutate(rain_flag = case_when(location == 'HC' & datetime_noDST == as.POSIXct('2021-08-02 12:30', tz = 'Etc/GMT+5') ~ 'pine needle removed from rain gauge; data prior may not be precise due to clogged gauge',
                                TRUE ~ ''))
 
 ggplot(subset(weather_L1, subset=(datetime_noDST>as.Date('2021-08-02') & 
@@ -447,11 +457,14 @@ ggplot(subset(weather_L1, subset=(datetime_noDST>as.Date('2021-09-24') &
   scale_color_colorblind() 
 
 weather_L1 <- weather_L1 %>% 
-  mutate(rain_flag = case_when(location == 'GM' & datetime_noDST == as.POSIXct('2021-09-24 10:30', tz = 'Etc/GMT+5') ~ 's',
+  mutate(rain_flag = case_when(location == 'GM' & 
+                                 datetime_noDST >= as.Date('2021-09-24') &
+                                 datetime_noDST < as.Date('2021-09-25') &
+                                 rain_mm > 20 ~ 's',
                                TRUE ~ rain_flag))
 
 #### questionable precip at GM dec 11 ----
-ggplot(subset(weather_L1, subset=(datetime_noDST>as.Date('2021-12-11') & 
+ggplot(subset(weather_L1, subset=(datetime_noDST>= as.Date('2021-12-11') & 
                                     datetime_noDST < as.Date('2021-12-12'))), 
        aes(x=datetime_noDST, y=rain_mm)) + 
   geom_point(aes(color = location)) +
@@ -461,7 +474,11 @@ ggplot(subset(weather_L1, subset=(datetime_noDST>as.Date('2021-12-11') &
   scale_color_colorblind() 
 
 weather_L1 <- weather_L1 %>% 
-  mutate(rain_flag = case_when(location == 'GM' & datetime_noDST == as.POSIXct('2021-12-11 14:00', tz = 'Etc/GMT+5') ~ 's',
+  mutate(rain_flag = case_when(location == 'GM' & 
+                                 datetime_noDST >= as.Date('2021-12-11') &
+                                 datetime_noDST < as.Date('2021-12-12') &
+                                 rain_mm >10 
+                               ~ 's',
                                TRUE ~ rain_flag))
 
 #### precip unclogged at HC Dec 14 ----
@@ -498,10 +515,10 @@ weather_L1 <- weather_L1 %>%
 
 
 ## Print 2-week plots to check all work ----
-weather_L1_vert <- weather_L1 %>%
-  select(location, datetime_noDST, source, all_of(dataforviz)) %>% #select only the data for visualization
+weather_L1_vert <- weather_L1 %>% 
+  select(location, datetime_noDST, all_of(dataforviz)) %>% #select only the data for visualization
   mutate(winddir = case_when(winddir == 'N' ~ '0',
-                             winddir == 'NNE' ~ '1',
+                             winddir == 'NNE' ~ '1', 
                              winddir == 'NE' ~ '2',
                              winddir == 'ENE' ~'3',
                              winddir == 'E' ~ '4',
@@ -510,14 +527,16 @@ weather_L1_vert <- weather_L1 %>%
                              winddir == 'SSE' ~ '7',
                              winddir == 'S' ~ '8',
                              winddir == 'SSW' ~ '9',
-                             winddir == 'SW' ~ '10',
-                             winddir == 'WSW' ~ '11',
+                             winddir == 'SW' ~ '10', 
+                             winddir == 'WSW' ~ '11', 
                              winddir == 'W' ~ '12',
                              winddir == 'WNW' ~ '13',
                              winddir == 'NW' ~ '14',
-                             winddir == 'NNW' ~ '15')) %>%
-  gather(variable, value, -location, - datetime_noDST, -source) %>%
-  mutate(value = as.numeric(value))
+                             winddir == 'NNW' ~ '15'),
+         winddir = as.numeric(winddir)) %>% 
+  pivot_longer(cols = all_of(dataforviz), 
+               names_to = "variable", 
+               values_to = "value") 
 
 #plot all L0.5 plots and save to appropriate figdir
 for (i in 1:(nrow(biweekly_2021)-1)){
