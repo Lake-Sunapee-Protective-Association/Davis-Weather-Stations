@@ -94,6 +94,16 @@ weather_submission <- weather_submission %>%
                         TRUE ~ .))
 ```
 
+There are instances where oAM is repeated in the sr and uv flags - let's take care of that.
+
+```{r}
+unique(weather_submission$SR_flag)
+
+weather_submission <- weather_submission %>% 
+  mutate(SR_flag = str_replace(SR_flag, 'oAM; oAM; oAM', 'oAM'),
+         UV_flag = str_replace(UV_flag, 'oAM; oAM; oAM', 'oAM'))
+```
+
 This file is now ready for submission. Save the .csv as one file per location:
 ```{r}
 unique(weather_submission$SiteName)
@@ -111,6 +121,6 @@ weather_submission %>%
   mutate(datetime_noDST = as.character(datetime_noDST),
          instrument_datetime = as.character(instrument_datetime)) %>% 
   filter(SiteName == 'SF') %>% 
-  write_csv(., paste0(dir, 'davis_weather_data_SouthOfTheFells_07-2019_01-2024_L1ODM2_v2024-01-01.csv'))
+  write_csv(., paste0(dir, 'davis_weather_data_SouthOfTheFells_07-2019_01-2024_L1ODM2_v2024-01-02.csv'))
 ```
 
