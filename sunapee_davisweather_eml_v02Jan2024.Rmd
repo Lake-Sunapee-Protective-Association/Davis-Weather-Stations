@@ -127,7 +127,7 @@ attr_GM <- attr_GM %>%
          missingValueCode = 'NA',
          missingValueCodeExplanation = case_when(grepl('NA', missingValueCode, ignore.case = T) ~ 'not available',
                                                  TRUE ~ missingValueCodeExplanation),
-         class = case_when(attributeName == 'rain_flag' ~ 'categorical',
+         class = case_when(attributeName == 'rain_flag' ~ 'categorical', #no flags
                            attributeName == 'time_flag' ~ 'categorical', #no flags
                            attributeName == 'BP_flag' ~ 'categorical', #no flags
                            attributeName == 'SR_flag' ~ 'categorical', #no flags
@@ -228,11 +228,11 @@ attr_HC <- attr_HC %>%
          missingValueCode = 'NA',
          missingValueCodeExplanation = case_when(grepl('NA', missingValueCode, ignore.case = T) ~ 'not available',
                                                  TRUE ~ missingValueCodeExplanation),
-         class = case_when(attributeName == 'time_flag' ~ 'categorical', #no flags
+         class = case_when(attributeName == 'time_flag' ~ 'categorical', 
                            attributeName == 'BP_flag' ~ 'categorical', #no flags
                            attributeName == 'SR_flag' ~ 'categorical', #no flags
                            attributeName == 'UV_flag' ~ 'categorical', #no flags
-                           attributeName == 'rain_flag' ~ 'categorical', #no flags
+                           attributeName == 'rain_flag' ~ 'categorical', 
                            attributeName == 'heatingDegreeDays' ~ 'numeric',
                            attributeName == 'coolingDegreeDays' ~ 'numeric',
                            attributeName == 'source' ~ 'character',
@@ -328,11 +328,11 @@ attr_SF <- attr_SF %>%
          missingValueCode = 'NA',
          missingValueCodeExplanation = case_when(grepl('NA', missingValueCode, ignore.case = T) ~ 'not available',
                                                  TRUE ~ missingValueCodeExplanation),
-         class = case_when(attributeName == 'time_flag' ~ 'categroical', #no flags
-                           attributeName == 'rain_flag' ~ 'categroical', #no flags
-                           attributeName == 'BP_flag' ~ 'categroical', #no flags
-                           attributeName == 'SR_flag' ~ 'categroical', #no flags
-                           attributeName == 'UV_flag' ~ 'categroical', #no flags
+         class = case_when(attributeName == 'time_flag' ~ 'categorical', #no flags
+                           attributeName == 'rain_flag' ~ 'categorical', #no flags
+                           attributeName == 'BP_flag' ~ 'categorical', #no flags
+                           attributeName == 'SR_flag' ~ 'categorical', #no flags
+                           attributeName == 'UV_flag' ~ 'categorical', #no flags
                            attributeName == 'heatingDegreeDays' ~ 'numeric',
                            attributeName == 'coolingDegreeDays' ~ 'numeric',
                            attributeName == 'source' ~ 'character',
@@ -388,8 +388,8 @@ attr_loc <- attr_loc %>%
          dateTimeFormatString = case_when(attributeName == 'DateDeployed' ~ 'YYYY-MM-DD hh:mm:ss'),
          missingValueCode = case_when(attributeName == 'WaterDepthMeters' ~ 'NA',
                                       TRUE ~ NA_character_),
-         missingValueCodeExplanation = case_when(grepl('NA', missingValueCode, ignore.case = T) ~ 'not applicable',
-                                                 is.na(missingValueCode) ~ 'not avaiable',
+         missingValueCodeExplanation = case_when(grepl('NA', missingValueCode, ignore.case = T) ~ 'not available',
+                                                 is.na(missingValueCode) ~ 'not available',
                                                  TRUE ~ missingValueCodeExplanation),
          class = case_when(attributeName == 'SiteName' ~ 'categorical',
                            attributeName == 'StationName' ~ 'character',
@@ -458,7 +458,7 @@ custom_units <- custom_units %>%
             unitType = 'speed',
             parentSI = '',
             multiplierToSI = '',
-            description = 'millimeters per hour')
+            description = 'expression of rate in millimeter per hour')
 
 ```
 
@@ -594,7 +594,32 @@ catvars_data <- catvars_data %>%
                                 code == 'NNW' ~ 'north north west',
                                 code == 'GM' ~ 'Georges Mills',
                                 code == 'HC' ~ 'Herrick Cove',
-                                code == 'SF' ~ 'South Fells'))
+                                code == 'SF' ~ 'South Fells',
+                                code == 'm: +11d 9h' ~ 'time has been adjusted from instrument_time by 11 days and 9 hours, time is approximate',
+                                code == 'm: +11h' ~ 'time has been adjusted from instrument_time by 11 hours, time is approximate',
+                                code == 'm: +12.5' ~ 'time has been adjusted from instrument_time by 12.5 hours, time is approximate',
+                                code == 'm: +12h' ~ 'time has been adjusted from instrument_time by 12 hours, time is approximate',
+                                (code == 'm: +13h'| code == 'm: +13') ~ 'time has been adjusted from instrument_time by 13 hours, time is approximate',
+                                code == 'm: +13.5' ~ 'time has been adjusted from instrument_time by 13.5 hours, time is approximate',
+                                (code == 'm: +14.5h'| code == 'm: +14.5') ~ 'time has been adjusted from instrument_time by 14.5 hours, time is approximate',
+                                code == 'm: +15' ~ 'time has been adjusted from instrument_time by 15 hours, time is approximate',
+                                code == 'm: +16' ~ 'time has been adjusted from instrument_time by 16 hours, time is approximate',
+                                code == 'm: +1h' ~ 'time has been adjusted from instrument_time by 1 hour, time is approximate',
+                                code == 'm: +2.5h' ~ 'time has been adjusted from instrument_time by 2.5 hours, time is approximate',
+                                code == 'm: +25' ~ 'time has been adjusted from instrument_time by 25 hours, time is approximate',
+                                code == 'm: +26' ~ 'time has been adjusted from instrument_time by 26 hours, time is approximate',
+                                (code == 'm: +26.5'| code == 'm: +26.5h') ~ 'time has been adjusted from instrument_time by 26.5 hours, time is approximate',
+                                code == 'm: +27' ~ 'time has been adjusted from instrument_time by 27 hours, time is approximate',
+                                code == 'm: +27.5' ~ 'time has been adjusted from instrument_time by 27.5 hours, time is approximate',
+                                code == 'm: +28.5' ~ 'time has been adjusted from instrument_time by 28.5 hours, time is approximate',
+                                code == 'm: +29' ~ 'time has been adjusted from instrument_time by 29 hours, time is approximate',
+                                code == 'm: +29.5' ~ 'time has been adjusted from instrument_time by 29.5 hours, time is approximate',
+                                code == 'm: +2h' ~ 'time has been adjusted from instrument_time by 2 hours, time is approximate',
+                                code == 'm: +3.5h' ~ 'time has been adjusted from instrument_time by 3.5 hours, time is approximate',
+                                code == 'm: +3h' ~ 'time has been adjusted from instrument_time by 3 hours, time is approximate',
+                                code == 'm: +4.5h' ~ 'time has been adjusted from instrument_time by 4.5 hours, time is approximate',
+                                code == 'm: +5h' ~ 'time has been adjusted from instrument_time by 5 hours, time is approximate',
+                                TRUE ~ ''))
 catvars_data
 ```
 
